@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Tumbkit is a toolkit to facilitate Tumblr theme development. More information is available
-on the home page at http://github.com/sdb/tumbkit.
+Tumbkit is a toolkit to facilitate Tumblr theme development. More information
+is available on the home page at http://github.com/sdb/tumbkit.
 
 This work is licensed under the MIT license (see LICENSE).
 """
@@ -16,60 +16,75 @@ from datetime import datetime
 
 
 class Block(object):
-    
-    def __init__(self, name, parent):
+    """
+    A block is a Python representation of a block in a Tumblr template (theme).
+    A block is responsible for resolving variables. A block also decides whether
+    or not it's content needs to be rendered.
+    """
+      
+       
+    def __init__(self, name, parent = None, output = None, context = None, conf = None, vars = None,  blocks = None):
+        """ Creates a block with the given name and parent. """
+        
         self.name = name
         self.parent = parent
+        self.output = output
+        self.context = context
+        self.conf = conf
+        self.vars = vars
+        self.blocks = blocks
         self.item = None
+        
         if parent != None:
+            self.context = parent.context
+            self.conf = parent.conf
+            self.vars = parent.vars
+            self.blocks = parent.blocks
             self.output = parent.output
-        
-    def get_root(self):
-        """ """
-        b = self
-        while b.parent != None:
-            b = b.parent
-        return b
-        
+     
+         
     def resolve_var(self, var_name):
-        """ """
+        """
+        Returns the value of the given variable.
+        """
         
-        if self.get_root().vars.has_key((self.name, var_name)):
-            return self.get_root().vars[self.name, var_name](self, var_name)
+        if self.vars.has_key((self.name, var_name)):
+            return self.vars[self.name, var_name](self, var_name)
         if self.parent != None:
             return self.parent.resolve_var(var_name)
         return None
     
+        
     def raw(self, html):
-        """ """
+        """ Adds the html to the output. """
         
         self.output.append(html)
-        
-    def newline(self):
-        """ """
-        
-        self.output.append('\n')
+    
     
     def var(self, name):
-        """ """
+        """ Adds the value of the given variable to the output. """
         
         text = self.resolve_var(name)
         if text == None:
             text = ''
         self.output.append(text)
     
+    
     def render(self, render_func):
-        """ """
+        """
+        This method checks if this block should be executed or not. If so, then
+        the given function is executed.
+        """
         
         do = False
         b = self
         while not do and b != None:
-            if self.get_root().blocks.has_key((b.name, self.name)):
+            if self.blocks.has_key((b.name, self.name)):
                 do = True
             else:
                 b = b.parent
         if do:
-            f = self.get_root().blocks[(b.name, self.name)]
+            f = self.blocks[(b.name, self.name)]
             v = f(self, b)
             if type(v) is list:
                 for o in v:
@@ -78,52 +93,6 @@ class Block(object):
             elif v:
                 render_func(self)
                 
-        
-class RootBlock(Block):
-    
-    def __init__(self, name, context, conf, vars, blocks):
-        super(RootBlock, self).__init__(name, None)
-        self.context = context
-        self.conf = conf
-        self.vars = vars
-        self.blocks = blocks
-        self.output = []
-
-
-def create_script(tpl_file):
-    lines = []
-    tpl = open(tpl_file)
-    indent = 0
-    func_ids = {}
-    id_stack = []
-    for line in tpl.readlines():
-        line = line.rstrip(os.linesep)
-        parts = re.split('(\\{.*?\\})', line)
-        for part in parts:
-            if part.startswith('{block:'):
-                name = part[7:len(part) - 1]
-                if func_ids.has_key(name):
-                    id = func_ids[name] + 1
-                    func_ids[name] = id
-                else:
-                    id = 1
-                    func_ids[name] = id
-                id_s = '%s_%d'%(name, id)
-                id_stack.append(id_s)
-                lines.append('%sblock = Block(\'%s\', parent = block)'%('\t' * indent, name))
-                lines.append('%sdef block_%s(block):'%('\t' * indent, id_s))
-                indent += 1
-            elif part.startswith('{/block:'):
-                indent -= 1
-                lines.append('%sblock.render(block_%s)'%('\t' * indent, id_stack.pop()))
-                lines.append('%sblock = block.parent'%('\t' * indent))
-            elif part.startswith('{'):
-                lines.append('%sblock.var(\'%s\')'%('\t' * indent, part[1:len(part) - 1]))
-            else:
-                if len(part) > 0:
-                    lines.append('%sblock.raw(\'%s\')'%('\t' * indent, part.replace('\'', '\\\'')))
-                    
-    return '\n'.join(lines)
 
 
 def var_date(s, fmt):
@@ -143,6 +112,7 @@ def var_name(post):
     else:
         return post['url']
 
+
 var_mapping = {        
     ('', 'Title'):                      lambda b, v: b.conf['title'],
     ('', 'Description') :               lambda b, v: b.conf['description'],
@@ -150,8 +120,8 @@ var_mapping = {
     ('', 'Favicon') :                   lambda b, v: b.conf['favicon'],
     ('', 'CustomCSS') :                 lambda b, v: b.conf['css'],
     ('', 'PostTitle') :                 lambda b, v: b.context['posts'][0]['title'],
-    ('', 'PostSummary') :               lambda b, v: b.context['posts'][0]['summary'], # TODO
-    ('Pages', 'URL') :                  lambda b, v: b.item['url'],
+    ('', 'PostSummary') :               lambda b, v: '', # TODO post summary
+    ('Pages', 'URL') :                  lambda b, v: '/%s'%b.item['url'],
     ('Pages', 'Label') :                lambda b, v: b.item['title'],
     ('Posts', 'Permalink') :            lambda b, v: var_perma(b.item),
     ('Posts', 'Title') :                lambda b, v: b.item['title'],
@@ -198,6 +168,8 @@ def create_conf(conf_file):
 
 
 def create_blocks(conf):
+    """ """
+    
     blocks = {}
     blocks.update(block_mapping)
     for v in conf['variables']:
@@ -213,43 +185,99 @@ def create_blocks(conf):
                 var += s.capitalize()
             blocks[('', 'If%s'%var)] = lambda b, p: True
     return blocks
+
             
 def create_vars(conf):
+    """ """
+    
     vars = {}
     vars.update(var_mapping)
     for v in conf['variables']:
         vars[('', v)] = lambda b, v: conf['variables'][v] 
     return vars
+
+
+def create_script(tpl_file):
+    """ """
+    
+    lines = []
+    tpl = open(tpl_file)
+    indent = 0
+    func_ids = {}
+    id_stack = []
+    for line in tpl.readlines():
+        line = line.rstrip(os.linesep)
+        parts = re.split('(\\{.*?\\})', line)
+        for part in parts:
+            if part.startswith('{block:'):
+                name = part[7:len(part) - 1]
+                if func_ids.has_key(name):
+                    id = func_ids[name] + 1
+                    func_ids[name] = id
+                else:
+                    id = 1
+                    func_ids[name] = id
+                id_s = '%s_%d'%(name, id)
+                id_stack.append(id_s)
+                lines.append('%sblock = Block(\'%s\', parent = block)'%('\t' * indent, name))
+                lines.append('%sdef block_%s(block):'%('\t' * indent, id_s))
+                indent += 1
+            elif part.startswith('{/block:'):
+                indent -= 1
+                lines.append('%sblock.render(block_%s)'%('\t' * indent, id_stack.pop()))
+                lines.append('%sblock = block.parent'%('\t' * indent))
+            elif part.startswith('{'):
+                lines.append('%sblock.var(\'%s\')'%('\t' * indent, part[1:len(part) - 1]))
+            else:
+                if len(part) > 0:
+                    lines.append('%sblock.raw(\'%s\')'%('\t' * indent, part.replace('\'', '\\\'')))
+                    
+    return '\n'.join(lines)
         
 
+
 class Engine:
+    """ """
     
     def __init__(self, tpl_file, conf_file):
+        """ """
+        
         self.tpl_file = tpl_file
         self.tpl_mod = None
         self.script = None
         self.conf_file = conf_file
         self.conf_mod = None
         self.conf = None
+        
          
     def prepare(self):
+        """ """
+        
         if self.script == None or getmtime(self.tpl_file) != self.tpl_mod:
             self.script = create_script(self.tpl_file)
             self.tpl_mod = getmtime(self.tpl_file)
+            
         if self.conf == None or getmtime(self.conf_file) != self.conf_mod:
             self.conf = create_conf(self.conf_file)
             self.conf_mod = getmtime(self.conf_file)
             
+            
     def render(self, prepare_context):
+        """ """
+        
         self.prepare()
         context = prepare_context(self.conf)
-        block = RootBlock('', context, self.conf, create_vars(self.conf), create_blocks(self.conf))
+        output = []
+        block = Block('', output = output, context = context, conf = self.conf, vars = create_vars(self.conf), blocks = create_blocks(self.conf))
         exec(self.script)
-        return ''.join(block.output)
+        return ''.join(output)
+
 
     
 @route('/')
 def index():
+    """ Main index page. """
+    
     def prepare_context(conf):
         context = {}
         posts_per_page = conf['post_per_page']
@@ -257,10 +285,14 @@ def index():
         context['index'] = True
         context['perma'] = False
         return context
+    
     return engine.render(prepare_context)
+
 
 @route('/page/:number')
 def index_page(number):
+    """ Index page. """
+    
     def prepare_context(conf):
         context = {}
         page = int(number)
@@ -269,10 +301,14 @@ def index_page(number):
         context['index'] = True
         context['perma'] = False
         return context
+    
     return engine.render(prepare_context)
+
 
 @route('/post/:id/:perma')
 def post(id, perma):
+    """ Permalink page showing post with specified id """
+    
     def prepare_context(conf):
         context = {}
         for post in conf['posts']:
@@ -283,44 +319,58 @@ def post(id, perma):
                 return context
     return engine.render(prepare_context)
 
+
 @route('/random')
 def random_post():
-    def prepare_context(conf):
-        context = {}
-        context['posts'] = [conf['posts'][(random.randint(0, len(conf['posts']) - 1))]]
-        context['perma'] = True
-        context['index'] = False
-        return context
-    return engine.render(prepare_context)
+    """ Redirects to permalink of random post. """
+    
+    return 'Not yet supported'
+
 
 @route('/archive')
 def archive():
+    """ """
+    
     return 'Not yet supported'
+
 
 @route('/search/:query')
 def search(query):
+    """ """
+    
     return 'Not yet supported'
+
 
 @route('/day/:year/:month/:day')
 def day(year, month, day):
+    """ """
+    
     return 'Not yet supported'
+
 
 @route('/tagged/:tag')
 def tagged(tag):
+    """ """
+    
     return 'Not yet supported'
 
+
 @route('/:page')
-def page(page):
+def page(page): # TODO mapping should only include known pages
+    """ """
+    
     return 'Not yet supported'
     
+
     
 def usage():
-    """ prints usage message """
+    """ Prints usage message. """
     
     None # TODO print usage message
-    
+
+   
 def main(argv):
-    """ parses the command line arguments and starts the server """
+    """ Parses the command line arguments and starts the server. """
     
     tpl = './tpl.html'        
     cfg = './cfg.json'
