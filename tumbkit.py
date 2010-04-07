@@ -322,8 +322,8 @@ def usage():
 def main(argv):
     """ parses the command line arguments and starts the server """
     
-    tpl = './template.html'        
-    cfg = './conf.json'
+    tpl = './tpl.html'        
+    cfg = './cfg.json'
     debug = False
     
     try:

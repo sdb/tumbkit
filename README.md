@@ -18,8 +18,8 @@ To start the server execute the following command:
 
     python tumbkit.py [-t tpl] [-c cfg]
 
-    -t : path to the template file, which defaults to ./template.html
-    -c : path to the configuration file, which defaults to ./conf.json
+    -t : path to the template file, which defaults to ./tpl.html
+    -c : path to the configuration file, which defaults to ./cfg.json
 
 Now go to [http://localhost:8080/](http://localhost:8080/) to see your template
 in action.
