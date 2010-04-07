@@ -21,7 +21,7 @@ To start the server execute the following command:
     -t : path to the template file, which defaults to ./template.html
     -c : path to the configuration file, which defaults to ./conf.json
 
-The go to [http://localhost:8080/](http://localhost:8080/) to see your template
+Now go to [http://localhost:8080/](http://localhost:8080/) to see your template
 in action.
 
 Dependencies
