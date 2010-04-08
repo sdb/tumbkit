@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 Tumbkit is a toolkit to facilitate Tumblr theme development. More information
-is available on the home page at http://github.com/sdb/tumbkit.
-
-This work is licensed under the MIT license (see LICENSE).
+is available on the home page at http://github.com/sdb/tumbkit and in README.md
 """
 
 
-import json, re, os, random, sys, getopt
+import json, re, os, random, sys, getopt, types
 import bottle
 
 from os.path import getmtime
-from bottle import route
+from bottle import route, redirect
 from datetime import datetime
+from HTMLParser import HTMLParser
 
 
 class Block(object):
@@ -49,7 +48,13 @@ class Block(object):
         """
         
         if self.vars.has_key((self.name, var_name)):
-            return self.vars[self.name, var_name](self, var_name)
+            v = self.vars[self.name, var_name]
+            if type(v) is str:
+                return v
+            elif type(v) is types.FunctionType:
+                return v(self, var_name)
+            else:
+                return v
         if self.parent != None:
             return self.parent.resolve_var(var_name)
         return None
@@ -95,6 +100,29 @@ class Block(object):
                 
 
 
+class HtmlStripper(HTMLParser):
+    """ """
+    
+    def __init__(self):
+        self.reset()
+        self.data = []
+         
+    def handle_data(self, d):
+         self.data.append(d)
+         
+    def get_data(self):
+         return ''.join(self.data)
+   
+    
+    
+def safe_html(s):
+    """ """
+    
+    stripper = HtmlStripper()
+    stripper.feed(s)
+    return stripper.get_data()
+
+        
 def var_date(s, fmt):
     d = datetime.strptime(s, '%Y/%m/%d')
     return d.strftime(fmt)
@@ -112,10 +140,15 @@ def var_name(post):
     else:
         return post['url']
 
+def var_url_safe(v):
+    return v.replace(' ', '_') # TODO
+
+    
 
 var_mapping = {        
     ('', 'Title'):                      lambda b, v: b.conf['title'],
     ('', 'Description') :               lambda b, v: b.conf['description'],
+    ('', 'MetaDescription') :           lambda b, v: safe_html(b.conf['description']),
     ('', 'RSS') :                       lambda b, v: b.conf['rss'],
     ('', 'Favicon') :                   lambda b, v: b.conf['favicon'],
     ('', 'CustomCSS') :                 lambda b, v: b.conf['css'],
@@ -132,21 +165,54 @@ var_mapping = {
     ('Posts', 'Source') :               lambda b, v: b.item['source'],
     ('Lines', 'Line') :                 lambda b, v: b.item['text'],
     ('Lines', 'Label') :                lambda b, v: b.item['label'],
+    ('Posts', 'AmPm') :                 lambda b, v: var_date(b.item['posted'], '%p').lower(),
+    ('Posts', 'CapitalAmPm') :          lambda b, v: var_date(b.item['posted'], '%p').upper(),
+    ('Posts', '12Hour') :               lambda b, v: str(int(var_date(b.item['posted'], '%I'))),
+    ('Posts', '24Hour') :               lambda b, v: str(int(var_date(b.item['posted'], '%H'))),
+    ('Posts', '12HourWithZero') :       lambda b, v: var_date(b.item['posted'], '%I'),
+    ('Posts', '24HourWithZero') :       lambda b, v: var_date(b.item['posted'], '%H'),
     ('Posts', 'Month') :                lambda b, v: var_date(b.item['posted'], '%B'),
+    ('Posts', 'Minutes') :              lambda b, v: var_date(b.item['posted'], '%M'),
+    ('Posts', 'Seconds') :              lambda b, v: var_date(b.item['posted'], '%S'),
+    ('Posts', 'Beats') :                lambda b, v: var_date(b.item['posted'], '%f'),
+    ('Posts', 'Timestamp') :            lambda b, v: '', # TODO Timestamp
     ('Posts', 'ShortMonth') :           lambda b, v: var_date(b.item['posted'], '%b'),
     ('Posts', 'MonthNumberWithZero') :  lambda b, v: var_date(b.item['posted'], '%m'),
+    ('Posts', 'MonthNumber') :          lambda b, v: str(int(var_date(b.item['posted'], '%m'))),
     ('Posts', 'DayOfMonthWithZero') :   lambda b, v: var_date(b.item['posted'], '%d'),
-    ('Posts', 'DayOfMonth') :           lambda b, v: var_date(b.item['posted'], '%d'),
+    ('Posts', 'DayOfWeek') :            lambda b, v: var_date(b.item['posted'], '%A'),
+    ('Posts', 'ShortDayOfWeek') :       lambda b, v: var_date(b.item['posted'], '%a'),
+    ('Posts', 'DayOfWeekNumber') :      lambda b, v: var_date(b.item['posted'], '%w'), # TODO should be 1 through 7
+    ('Posts', 'DayOfMonth') :           lambda b, v: str(int(var_date(b.item['posted'], '%d'))),
+    ('Posts', 'DayOfMonthSuffix') :     lambda b, v: '', # TODO DayOfMonthSuffix
+    ('Posts', 'DayOfYear') :            lambda b, v: str(int(var_date(b.item['posted'], '%j'))),
+    ('Posts', 'WeekOfYear') :           lambda b, v: str(int(var_date(b.item['posted'], '%W'))),
     ('Posts', 'Year') :                 lambda b, v: var_date(b.item['posted'], '%Y'),
-    ('Posts', 'TimeAgo') :              lambda b, v: '%d days ago'%(datetime.now()-datetime.strptime(b.item['posted'], '%Y/%m/%d')).days,
+    ('Posts', 'ShortYear') :            lambda b, v: var_date(b.item['posted'], '%y'),
+    ('Posts', 'TimeAgo') :              lambda b, v: '%d days ago'%(datetime.now()-datetime.strptime(b.item['posted'], '%Y/%m/%d')).days, # TODO TimeAgo
+    ('Posts', 'PostNotes') :            lambda b, v: var_post_notes(b.item['notes']),
     ('Tags', 'Tag') :                   lambda b, v: b.item,
-    ('Tags', 'TagURL') :                lambda b, v: '/tagged/%s'%b.item
+    ('Tags', 'TagURL') :                lambda b, v: '/tagged/%s'%var_url_safe(b.item),
+    ('Tags', 'TagURLChrono') :          lambda b, v: '/tagged/%s/chrono'%var_url_safe(b.item),
+    ('Tags', 'URLSafeTag') :            lambda b, v: var_url_safe(b.item),
+    ('', 'PreviousPage') :              lambda b, v: b.context['pagination']['prev_page'],
+    ('', 'NextPage') :                  lambda b, v: b.context['pagination']['next_page'],
+    ('', 'TotalPages') :                lambda b, v: '%s'%b.context['total_pages'],
+    ('', 'CurrentPage') :               lambda b, v: '%s'%b.context['current_page'],
+    ('', 'PreviousPost') :              lambda b, v: var_perma(b.context['permalink_pagination']['prev_post']),
+    ('', 'NextPost') :                  lambda b, v: var_perma(b.context['permalink_pagination']['next_post']),
 }
+
+for dim in [16,24,30,40,48,64,96,128]:
+    var_mapping[('', 'PortraitURL-%d'%dim)] = 'http://assets.tumblr.com/images/default_avatar_%d.gif'%dim
+
 
 block_mapping = {
     ('', 'Description') :           lambda b, p: p.conf.has_key('description'),
-    ('', 'PermalinkPage') :         lambda b, p: p.context.has_key('description'),
+    ('', 'PermalinkPage') :         lambda b, p: p.context['type'] == 'perma',
+    ('', 'IndexPage') :             lambda b, p: p.context['type'] == 'index',
     ('', 'PostTitle') :             lambda b, p: p.context.has_key('posts') and len(p.context['posts']) > 0 and p.context['posts'][0].has_key('title'),
+    ('', 'PostSummary') :           lambda b, p: p.context.has_key('posts') and len(p.context['posts']) > 0,
     ('', 'HasPages') :              lambda b, p: p.conf.has_key('pages'),
     ('', 'Pages') :                 lambda b, p: p.conf['pages'],
     ('', 'Posts') :                 lambda b, p: p.context['posts'],
@@ -159,7 +225,15 @@ block_mapping = {
     ('Posts', 'Quote') :            lambda b, p: p.item['type'].capitalize() == b.name,
     ('Posts', 'Source') :           lambda b, p: p.item.has_key('source'),
     ('Posts', 'Link') :             lambda b, p: p.item['type'].capitalize() == b.name,
-    ('Posts', 'Chat') :             lambda b, p: p.item['type'].capitalize() == b.name
+    ('Posts', 'Chat') :             lambda b, p: p.item['type'].capitalize() == b.name,
+    ('Posts', 'Date') :             lambda b, p: True,
+    # TODO PostNotes ('Posts', 'PostNotes') :        lambda b, p: p.item.has_key('notes') and len(p.item['notes']) > 0,
+    ('', 'Pagination') :            lambda b, p: p.context.has_key('pagination'),
+    ('', 'PreviousPage') :          lambda b, p: p.context['pagination']['prev_page'],
+    ('', 'NextPage') :              lambda b, p: p.context['pagination']['next_page'],
+    ('', 'PermalinkPagination') :   lambda b, p: p.context.has_key('permalink_pagination'),
+    ('', 'PreviousPost') :          lambda b, p: p.context['permalink_pagination']['prev_post'],
+    ('', 'NextPost') :              lambda b, p: p.context['permalink_pagination']['next_post'],
 }
 
 
@@ -178,7 +252,7 @@ def create_blocks(conf):
             for s in v.split(':')[1].split(' '):
                 var += s.capitalize()
             blocks[('', 'If%s'%var)] = lambda b, p: conf['variables'][v] == 1
-            blocks[('', 'NotIf%s'%var)] = lambda b, p: conf['variables'][v] != 1
+            blocks[('', 'IfNot%s'%var)] = lambda b, p: conf['variables'][v] != 1
         else:
             var = ''
             for s in v.split(':')[1].split(' '):
@@ -273,35 +347,34 @@ class Engine:
         return ''.join(output)
 
 
-    
+def prepare_context_for_posts(posts_per_page, pagenr, total_posts, posts, context, url_prefix):
+    total_pages = (total_posts / posts_per_page) +  (0 if total_posts % posts_per_page == 0 else 1)
+    context['posts'] = posts
+    context['total_pages'] = total_pages
+    context['current_page'] = pagenr
+    prev = pagenr - 1 if pagenr > 1 else None
+    next = pagenr + 1 if pagenr < total_pages else None
+    if prev != None or next != None:
+        context['pagination'] = {
+            "prev_page" : '%s/page/%s'%(url_prefix, prev) if prev != None else None,
+            "next_page" : '%s/page/%s'%(url_prefix, next) if next != None else None
+        }
+    return context
+
+
 @route('/')
-def index():
-    """ Main index page. """
-    
-    def prepare_context(conf):
-        context = {}
-        posts_per_page = conf['post_per_page']
-        context['posts'] = conf['posts'][0:posts_per_page]
-        context['index'] = True
-        context['perma'] = False
-        return context
-    
-    return engine.render(prepare_context)
-
-
-@route('/page/:number')
-def index_page(number):
+@route('/page/:pagenr')
+def index(pagenr = 1):
     """ Index page. """
     
     def prepare_context(conf):
         context = {}
-        page = int(number)
         posts_per_page = conf['post_per_page']
-        context['posts'] = conf['posts'][(page-1)*posts_per_page:(posts_per_page*page)]
-        context['index'] = True
-        context['perma'] = False
-        return context
+        posts = sorted(conf['posts'], key=lambda k: datetime.strptime(k['posted'], '%Y/%m/%d'), reverse=True)[(pagenr-1)*posts_per_page:(posts_per_page*pagenr)]
+        context['type'] = 'index'
+        return prepare_context_for_posts(posts_per_page, pagenr, len(conf['posts']), posts, context, '')
     
+    pagenr = int(pagenr)
     return engine.render(prepare_context)
 
 
@@ -311,12 +384,16 @@ def post(id, perma):
     
     def prepare_context(conf):
         context = {}
-        for post in conf['posts']:
-            if post['id'] == int(id):
-                context['posts'] = [post]
-                context['perma'] = True
-                context['index'] = False
-                return context
+        for i, p in enumerate(conf['posts']):
+            if p['id'] == int(id):
+                break
+        context['posts'] = [p]
+        context['type'] = 'perma'
+        context['permalink_pagination'] = {} if len(conf['posts']) > 0 else None
+        context['permalink_pagination']['prev_post'] = conf['posts'][i-1] if i > 0 else None
+        context['permalink_pagination']['next_post'] = conf['posts'][i+1] if i < len(conf['posts'])-1 else None
+        return context
+    
     return engine.render(prepare_context)
 
 
@@ -324,14 +401,19 @@ def post(id, perma):
 def random_post():
     """ Redirects to permalink of random post. """
     
-    return 'Not yet supported'
+    post = engine.conf['posts'][(random.randint(0, len(engine.conf['posts']) - 1))]
+    if post.has_key('title'):
+        p = post['title']
+    else:
+        p = 'summary' # TODO post summary
+    redirect('/post/%d/%s'%(post['id'], p.replace(' ', '-').lower()))
 
 
 @route('/archive')
 def archive():
     """ """
     
-    return 'Not yet supported'
+    return 'Not supported'
 
 
 @route('/search/:query')
@@ -348,11 +430,24 @@ def day(year, month, day):
     return 'Not yet supported'
 
 
+@route('/tagged/:tag/page/:pagenr')
 @route('/tagged/:tag')
-def tagged(tag):
+def tagged(tag, pagenr = 1):
     """ """
     
-    return 'Not yet supported'
+    def prepare_context(conf):
+        context = {}
+        posts_per_page = conf['post_per_page']
+        posts = []
+        for p in conf['posts']:
+            if p.has_key('tags') and tag in p['tags']:
+                posts.append(p)
+        posts = sorted(posts, key=lambda k: datetime.strptime(k['posted'], '%Y/%m/%d'), reverse=True)
+        context['type'] = 'tagged'
+        return prepare_context_for_posts(posts_per_page, pagenr, len(posts), posts, context, '/tagged/%s'%tag)
+    
+    pagenr = int(pagenr)
+    return engine.render(prepare_context)
 
 
 @route('/:page')
