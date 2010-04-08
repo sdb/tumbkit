@@ -332,8 +332,8 @@ def prepare_context_for_posts(posts_per_page, pagenr, total_posts, posts, contex
     next = pagenr + 1 if pagenr < total_pages else None
     if prev != None or next != None:
         context['pagination'] = {
-            "prev_page" : '%s/page/%s'%(url_prefix, prev) if prev != None else None,
-            "next_page" : '%s/page/%s'%(url_prefix, next) if next != None else None
+            'prev_page' : '%s/page/%s'%(url_prefix, prev) if prev != None else None,
+            'next_page' : '%s/page/%s'%(url_prefix, next) if next != None else None
         }
     return context
 
@@ -437,18 +437,19 @@ def page(page): # TODO mapping should only include known pages
 def usage():
     """ Prints usage message. """
     
-    None # TODO print usage message
+    print 'Usage: python tumbkit.py -d [-t tpl] [-c cfg] [-p port]'
+    print 'Options and arguments:'
+    print '-t  : path to the template file, defaults to ./tpl.html'
+    print '-c  : path to the configuration file, defaults to ./cfg.json'
+    print '-p  : port, defaults to 8080'
+    print '-d  : debug, defaults to False'
 
    
-def main(argv):
+def main(argv, tpl = './tpl.html', cfg = './cfg.json', debug = False, port = 8080):
     """ Parses the command line arguments and starts the server. """
     
-    tpl = './tpl.html'        
-    cfg = './cfg.json'
-    debug = False
-    
     try:
-        opts, args = getopt.getopt(argv, 'ht:c:d', ['help', 'tpl=', 'cfg='])                               
+        opts, args = getopt.getopt(argv, 'ht:c:p:d', ['help', 'tpl=', 'cfg=', 'port='])                               
     except getopt.GetoptError:
         usage()          
         sys.exit(2)                     
@@ -462,13 +463,16 @@ def main(argv):
             tpl = arg
         elif opt in ('-c', '--cfg'): 
             cfg = arg
+        elif opt in ('-p', '--port'):
+            port = arg
     
     global engine
     engine = Engine(tpl, cfg)
     bottle.debug(debug)
-    bottle.run()
+    bottle.run(host='localhost', port=port)
     
     
 if __name__ == '__main__':
     main(sys.argv[1:])
+
     
