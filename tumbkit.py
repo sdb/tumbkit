@@ -47,8 +47,6 @@ class Block(object):
                 return v
             elif type(v) is types.FunctionType:
                 return v(self, var_name)
-            else:
-                return v
         if self.parent != None:
             return self.parent.resolve_var(var_name)
         return None
