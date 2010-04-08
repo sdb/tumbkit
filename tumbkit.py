@@ -27,19 +27,13 @@ class Block(object):
         
         self.name = name
         self.parent = parent
-        self.output = output
-        self.context = context
-        self.conf = conf
-        self.vars = vars
-        self.blocks = blocks
         self.item = None
         
-        if parent != None:
-            self.context = parent.context
-            self.conf = parent.conf
-            self.vars = parent.vars
-            self.blocks = parent.blocks
-            self.output = parent.output
+        self.output = output if parent == None else parent.output
+        self.context = context if parent == None else parent.context
+        self.conf = conf if parent == None else parent.conf
+        self.vars = vars if parent == None else parent.vars
+        self.blocks = blocks if parent == None else parent.blocks
      
          
     def resolve_var(self, var_name):
