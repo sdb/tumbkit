@@ -305,27 +305,25 @@ def create_script(tpl_file):
 class Engine:
     """ """
     
-    def __init__(self, tpl_file, conf_file):
+    def __init__(self, tpl_file, cfg_file):
         """ """
         
-        self.tpl_file = tpl_file
-        self.tpl_mod = None
+        self.tpl = (tpl_file, None)
         self.script = None
-        self.conf_file = conf_file
-        self.conf_mod = None
+        self.cfg = (cfg_file, None)
         self.conf = None
             
             
     def apply(self, prepare_context):
         """ """
         
-        if self.script == None or getmtime(self.tpl_file) != self.tpl_mod:
-            self.script = create_script(self.tpl_file)
-            self.tpl_mod = getmtime(self.tpl_file)
+        if self.script == None or getmtime(self.tpl[0]) != self.tpl[1]:
+            self.script = create_script(self.tpl[0])
+            self.tpl = (self.tpl[0], getmtime(self.tpl[0]))
             
-        if self.conf == None or getmtime(self.conf_file) != self.conf_mod:
-            self.conf = create_conf(self.conf_file)
-            self.conf_mod = getmtime(self.conf_file)
+        if self.conf == None or getmtime(self.cfg[0]) != self.cfg[1]:
+            self.conf = create_conf(self.cfg[0])
+            self.cfg = (self.cfg[0], getmtime(self.cfg[0]))
             
         context = prepare_context(self.conf)
         output = []
