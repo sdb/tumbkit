@@ -420,7 +420,7 @@ def tagged(tag, pagenr = 1):
                 posts.append(p)
         posts = sorted(posts, key=lambda k: datetime.strptime(k['posted'], '%Y/%m/%d'), reverse=True)
         context['type'] = 'tagged'
-        return prepare_context_for_posts(posts_per_page, pagenr, len(posts), posts, context, '/tagged/%s'%tag)
+        return prepare_context_for_posts(posts_per_page, pagenr, len(posts), posts[(pagenr-1)*posts_per_page:(posts_per_page*pagenr)], context, '/tagged/%s'%tag)
     
     pagenr = int(pagenr)
     return engine.apply(prepare_context)
