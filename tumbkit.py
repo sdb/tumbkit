@@ -322,9 +322,9 @@ class Engine:
         self.conf_file = conf_file
         self.conf_mod = None
         self.conf = None
-        
-         
-    def prepare(self):
+            
+            
+    def apply(self, prepare_context):
         """ """
         
         if self.script == None or getmtime(self.tpl_file) != self.tpl_mod:
@@ -335,16 +335,13 @@ class Engine:
             self.conf = create_conf(self.conf_file)
             self.conf_mod = getmtime(self.conf_file)
             
-            
-    def render(self, prepare_context):
-        """ """
-        
-        self.prepare()
         context = prepare_context(self.conf)
         output = []
         block = Block('', output = output, context = context, conf = self.conf, vars = create_vars(self.conf), blocks = create_blocks(self.conf))
         exec(self.script)
+        
         return ''.join(output)
+
 
 
 def prepare_context_for_posts(posts_per_page, pagenr, total_posts, posts, context, url_prefix):
@@ -375,7 +372,7 @@ def index(pagenr = 1):
         return prepare_context_for_posts(posts_per_page, pagenr, len(conf['posts']), posts, context, '')
     
     pagenr = int(pagenr)
-    return engine.render(prepare_context)
+    return engine.apply(prepare_context)
 
 
 @route('/post/:id/:perma')
@@ -394,7 +391,7 @@ def post(id, perma):
         context['permalink_pagination']['next_post'] = conf['posts'][i+1] if i < len(conf['posts'])-1 else None
         return context
     
-    return engine.render(prepare_context)
+    return engine.apply(prepare_context)
 
 
 @route('/random')
@@ -447,7 +444,7 @@ def tagged(tag, pagenr = 1):
         return prepare_context_for_posts(posts_per_page, pagenr, len(posts), posts, context, '/tagged/%s'%tag)
     
     pagenr = int(pagenr)
-    return engine.render(prepare_context)
+    return engine.apply(prepare_context)
 
 
 @route('/:page')
