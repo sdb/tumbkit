@@ -62,9 +62,7 @@ class Block(object):
         """ Adds the value of the given variable to the output. """
         
         text = self.resolve_var(name)
-        if text == None:
-            text = ''
-        self.output.append(text)
+        self.output.append('' if text == None else text)
     
     
     def render(self, render_func):
@@ -120,17 +118,8 @@ def var_date(s, fmt):
     return d.strftime(fmt)
 
 def var_perma(post):
-    if post.has_key('title'):
-        p = post['title']
-    else:
-        p = 'summary' # TODO post summary
+    p = post['title'] if post.has_key('title') else 'summary' # TODO post summary
     return '/post/%d/%s'%(post['id'], p.replace(' ', '-').lower())
-
-def var_name(post):
-    if post.has_key('title'):
-        return post['title']
-    else:
-        return post['url']
 
 def var_url_safe(v):
     return v.replace(' ', '_') # TODO
@@ -152,7 +141,7 @@ var_mapping = {
     ('Posts', 'Title') :                lambda b, v: b.item['title'],
     ('Posts', 'Body') :                 lambda b, v: b.item['body'],
     ('Posts', 'Description') :          lambda b, v: b.item['description'],
-    ('Posts', 'Name') :                 lambda b, v: var_name(b.item),
+    ('Posts', 'Name') :                 lambda b, v: b.item['title'] if b.item.has_key('title') else b.item['url'],
     ('Posts', 'Quote') :                lambda b, v: b.item['quote'],
     ('Posts', 'Source') :               lambda b, v: b.item['source'],
     ('Lines', 'Line') :                 lambda b, v: b.item['text'],
