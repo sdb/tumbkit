@@ -200,7 +200,7 @@ block_mapping = {
     ('', 'Description') :           lambda b, p, r: r.conf.has_key('description'),
     ('', 'PermalinkPage') :         lambda b, p, r: r.context['type'] == 'perma',
     ('', 'IndexPage') :             lambda b, p, r: r.context['type'] == 'index',
-    ('', 'PostTitle') :             lambda b, p, r: r.context.has_key('posts') and len(r.context['posts']) > 0 and r.context['posts'][0].has_key('title'),
+    ('', 'PostTitle') :             lambda b, p, r: r.context['type'] == 'perma' and r.context.has_key('posts') and len(r.context['posts']) > 0 and r.context['posts'][0].has_key('title'),
     ('', 'PostSummary') :           lambda b, p, r: r.context.has_key('posts') and len(r.context['posts']) > 0,
     ('', 'HasPages') :              lambda b, p, r: r.conf.has_key('pages'),
     ('', 'Pages') :                 lambda b, p, r: r.conf['pages'],
