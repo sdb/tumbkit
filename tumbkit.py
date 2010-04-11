@@ -17,41 +17,49 @@ from HTMLParser import HTMLParser
 class Block(object):
     """
     A block is a Python representation of a block in a Tumblr template (theme).
-    A block is responsible for resolving variables. A block also decides whether
-    or not it's content needs to be rendered.
     """
       
        
-    def __init__(self, name, parent = None, output = None, context = None, conf = None, vars = None,  blocks = None):
+    def __init__(self, name, parent):
         """ Creates a block with the given name and parent. """
         
         self.name = name
         self.parent = parent
         self.item = None
+                
+
+class Renderer(object):
+    """
+    A renderer is responsible for resolving variables. A renderer also decides
+    whether or not a block needs to be rendered.
+    """
+    
+    def __init__(self, output, context, conf, vars, blocks):
         
-        self.output = output if parent == None else parent.output
-        self.context = context if parent == None else parent.context
-        self.conf = conf if parent == None else parent.conf
-        self.vars = vars if parent == None else parent.vars
-        self.blocks = blocks if parent == None else parent.blocks
-     
-         
-    def resolve_var(self, var_name):
+        self.output = output
+        self.context = context
+        self.conf = conf
+        self.vars = vars
+        self.blocks = blocks
+        self.block = Block('', None)
+        
+        
+    def resolve_var(self, var_name, block):
         """
-        Returns the value of the given variable.
+        Returns the value of the given variable for the given block.
         """
         
-        if self.vars.has_key((self.name, var_name)):
-            v = self.vars[self.name, var_name]
+        if self.vars.has_key((block.name, var_name)):
+            v = self.vars[block.name, var_name]
             if type(v) is str:
                 return v
             elif type(v) is types.FunctionType:
-                return v(self, var_name)
-        if self.parent != None:
-            return self.parent.resolve_var(var_name)
+                return v(block, var_name, self)
+        if block.parent != None:
+            return self.resolve_var(var_name, block.parent)
         return None
     
-        
+    
     def raw(self, html):
         """ Adds the html to the output. """
         
@@ -59,36 +67,38 @@ class Block(object):
     
     
     def var(self, name):
-        """ Adds the value of the given variable to the output. """
+        """
+        Adds the value of the given variable in the given block to the output.
+        """
         
-        text = self.resolve_var(name)
+        text = self.resolve_var(name, self.block)
         self.output.append('' if text == None else text)
-    
-    
+        
+        
     def render(self, render_func):
         """
-        This method checks if this block should be executed or not. If so, then
-        the given function is executed.
+        This method checks if the given block should be executed or not. If so,
+        then the given function is executed.
         """
         
         do = False
-        b = self
+        b = self.block
         while not do and b != None:
-            if self.blocks.has_key((b.name, self.name)):
+            if self.blocks.has_key((b.name, self.block.name)):
                 do = True
             else:
                 b = b.parent
         if do:
-            f = self.blocks[(b.name, self.name)]
-            v = f(self, b)
+            f = self.blocks[(b.name, self.block.name)]
+            v = f(self.block, b, self)
             if type(v) is list:
                 for o in v:
-                    self.item = o
+                    self.block.item = o
                     render_func(self)
             elif v:
                 render_func(self)
-                
-
+        
+        
 
 class HtmlStripper(HTMLParser):
     """ """
@@ -127,61 +137,61 @@ def var_url_safe(v):
     
 
 var_mapping = {        
-    ('', 'Title'):                      lambda b, v: b.conf['title'],
-    ('', 'Description') :               lambda b, v: b.conf['description'],
-    ('', 'MetaDescription') :           lambda b, v: safe_html(b.conf['description']),
-    ('', 'RSS') :                       lambda b, v: b.conf['rss'],
-    ('', 'Favicon') :                   lambda b, v: b.conf['favicon'],
-    ('', 'CustomCSS') :                 lambda b, v: b.conf['css'],
-    ('', 'PostTitle') :                 lambda b, v: b.context['posts'][0]['title'],
-    ('', 'PostSummary') :               lambda b, v: '', # TODO post summary
-    ('Pages', 'URL') :                  lambda b, v: '/%s'%b.item['url'],
-    ('Pages', 'Label') :                lambda b, v: b.item['title'],
-    ('Posts', 'Permalink') :            lambda b, v: var_perma(b.item),
-    ('Posts', 'Title') :                lambda b, v: b.item['title'],
-    ('Posts', 'Body') :                 lambda b, v: b.item['body'],
-    ('Posts', 'Description') :          lambda b, v: b.item['description'],
-    ('Posts', 'Name') :                 lambda b, v: b.item['title'] if b.item.has_key('title') else b.item['url'],
-    ('Posts', 'Quote') :                lambda b, v: b.item['quote'],
-    ('Posts', 'Source') :               lambda b, v: b.item['source'],
-    ('Lines', 'Line') :                 lambda b, v: b.item['text'],
-    ('Lines', 'Label') :                lambda b, v: b.item['label'],
-    ('Posts', 'AmPm') :                 lambda b, v: var_date(b.item['posted'], '%p').lower(),
-    ('Posts', 'CapitalAmPm') :          lambda b, v: var_date(b.item['posted'], '%p').upper(),
-    ('Posts', '12Hour') :               lambda b, v: str(int(var_date(b.item['posted'], '%I'))),
-    ('Posts', '24Hour') :               lambda b, v: str(int(var_date(b.item['posted'], '%H'))),
-    ('Posts', '12HourWithZero') :       lambda b, v: var_date(b.item['posted'], '%I'),
-    ('Posts', '24HourWithZero') :       lambda b, v: var_date(b.item['posted'], '%H'),
-    ('Posts', 'Month') :                lambda b, v: var_date(b.item['posted'], '%B'),
-    ('Posts', 'Minutes') :              lambda b, v: var_date(b.item['posted'], '%M'),
-    ('Posts', 'Seconds') :              lambda b, v: var_date(b.item['posted'], '%S'),
-    ('Posts', 'Beats') :                lambda b, v: var_date(b.item['posted'], '%f'),
-    ('Posts', 'Timestamp') :            lambda b, v: '', # TODO Timestamp
-    ('Posts', 'ShortMonth') :           lambda b, v: var_date(b.item['posted'], '%b'),
-    ('Posts', 'MonthNumberWithZero') :  lambda b, v: var_date(b.item['posted'], '%m'),
-    ('Posts', 'MonthNumber') :          lambda b, v: str(int(var_date(b.item['posted'], '%m'))),
-    ('Posts', 'DayOfMonthWithZero') :   lambda b, v: var_date(b.item['posted'], '%d'),
-    ('Posts', 'DayOfWeek') :            lambda b, v: var_date(b.item['posted'], '%A'),
-    ('Posts', 'ShortDayOfWeek') :       lambda b, v: var_date(b.item['posted'], '%a'),
-    ('Posts', 'DayOfWeekNumber') :      lambda b, v: var_date(b.item['posted'], '%w'), # TODO should be 1 through 7
-    ('Posts', 'DayOfMonth') :           lambda b, v: str(int(var_date(b.item['posted'], '%d'))),
-    ('Posts', 'DayOfMonthSuffix') :     lambda b, v: '', # TODO DayOfMonthSuffix
-    ('Posts', 'DayOfYear') :            lambda b, v: str(int(var_date(b.item['posted'], '%j'))),
-    ('Posts', 'WeekOfYear') :           lambda b, v: str(int(var_date(b.item['posted'], '%W'))),
-    ('Posts', 'Year') :                 lambda b, v: var_date(b.item['posted'], '%Y'),
-    ('Posts', 'ShortYear') :            lambda b, v: var_date(b.item['posted'], '%y'),
-    ('Posts', 'TimeAgo') :              lambda b, v: '%d days ago'%(datetime.now()-datetime.strptime(b.item['posted'], '%Y/%m/%d')).days, # TODO TimeAgo
-    ('Posts', 'PostNotes') :            lambda b, v: var_post_notes(b.item['notes']),
-    ('Tags', 'Tag') :                   lambda b, v: b.item,
-    ('Tags', 'TagURL') :                lambda b, v: '/tagged/%s'%var_url_safe(b.item),
-    ('Tags', 'TagURLChrono') :          lambda b, v: '/tagged/%s/chrono'%var_url_safe(b.item),
-    ('Tags', 'URLSafeTag') :            lambda b, v: var_url_safe(b.item),
-    ('', 'PreviousPage') :              lambda b, v: b.context['pagination']['prev_page'],
-    ('', 'NextPage') :                  lambda b, v: b.context['pagination']['next_page'],
-    ('', 'TotalPages') :                lambda b, v: '%s'%b.context['total_pages'],
-    ('', 'CurrentPage') :               lambda b, v: '%s'%b.context['current_page'],
-    ('', 'PreviousPost') :              lambda b, v: var_perma(b.context['permalink_pagination']['prev_post']),
-    ('', 'NextPost') :                  lambda b, v: var_perma(b.context['permalink_pagination']['next_post']),
+    ('', 'Title'):                      lambda b, v, r: r.conf['title'],
+    ('', 'Description') :               lambda b, v, r: r.conf['description'],
+    ('', 'MetaDescription') :           lambda b, v, r: safe_html(r.conf['description']),
+    ('', 'RSS') :                       lambda b, v, r: r.conf['rss'],
+    ('', 'Favicon') :                   lambda b, v, r: r.conf['favicon'],
+    ('', 'CustomCSS') :                 lambda b, v, r: r.conf['css'],
+    ('', 'PostTitle') :                 lambda b, v, r: r.context['posts'][0]['title'],
+    ('', 'PostSummary') :               lambda b, v, r: '', # TODO post summary
+    ('Pages', 'URL') :                  lambda b, v, r: '/%s'%b.item['url'],
+    ('Pages', 'Label') :                lambda b, v, r: b.item['title'],
+    ('Posts', 'Permalink') :            lambda b, v, r: var_perma(b.item),
+    ('Posts', 'Title') :                lambda b, v, r: b.item['title'],
+    ('Posts', 'Body') :                 lambda b, v, r: b.item['body'],
+    ('Posts', 'Description') :          lambda b, v, r: b.item['description'],
+    ('Posts', 'Name') :                 lambda b, v, r: b.item['title'] if b.item.has_key('title') else b.item['url'],
+    ('Posts', 'Quote') :                lambda b, v, r: b.item['quote'],
+    ('Posts', 'Source') :               lambda b, v, r: b.item['source'],
+    ('Lines', 'Line') :                 lambda b, v, r: b.item['text'],
+    ('Lines', 'Label') :                lambda b, v, r: b.item['label'],
+    ('Posts', 'AmPm') :                 lambda b, v, r: var_date(b.item['posted'], '%p').lower(),
+    ('Posts', 'CapitalAmPm') :          lambda b, v, r: var_date(b.item['posted'], '%p').upper(),
+    ('Posts', '12Hour') :               lambda b, v, r: str(int(var_date(b.item['posted'], '%I'))),
+    ('Posts', '24Hour') :               lambda b, v, r: str(int(var_date(b.item['posted'], '%H'))),
+    ('Posts', '12HourWithZero') :       lambda b, v, r: var_date(b.item['posted'], '%I'),
+    ('Posts', '24HourWithZero') :       lambda b, v, r: var_date(b.item['posted'], '%H'),
+    ('Posts', 'Month') :                lambda b, v, r: var_date(b.item['posted'], '%B'),
+    ('Posts', 'Minutes') :              lambda b, v, r: var_date(b.item['posted'], '%M'),
+    ('Posts', 'Seconds') :              lambda b, v, r: var_date(b.item['posted'], '%S'),
+    ('Posts', 'Beats') :                lambda b, v, r: var_date(b.item['posted'], '%f'),
+    ('Posts', 'Timestamp') :            lambda b, v, r: '', # TODO Timestamp
+    ('Posts', 'ShortMonth') :           lambda b, v, r: var_date(b.item['posted'], '%b'),
+    ('Posts', 'MonthNumberWithZero') :  lambda b, v, r: var_date(b.item['posted'], '%m'),
+    ('Posts', 'MonthNumber') :          lambda b, v, r: str(int(var_date(b.item['posted'], '%m'))),
+    ('Posts', 'DayOfMonthWithZero') :   lambda b, v, r: var_date(b.item['posted'], '%d'),
+    ('Posts', 'DayOfWeek') :            lambda b, v, r: var_date(b.item['posted'], '%A'),
+    ('Posts', 'ShortDayOfWeek') :       lambda b, v, r: var_date(b.item['posted'], '%a'),
+    ('Posts', 'DayOfWeekNumber') :      lambda b, v, r: var_date(b.item['posted'], '%w'), # TODO should be 1 through 7
+    ('Posts', 'DayOfMonth') :           lambda b, v, r: str(int(var_date(b.item['posted'], '%d'))),
+    ('Posts', 'DayOfMonthSuffix') :     lambda b, v, r: '', # TODO DayOfMonthSuffix
+    ('Posts', 'DayOfYear') :            lambda b, v, r: str(int(var_date(b.item['posted'], '%j'))),
+    ('Posts', 'WeekOfYear') :           lambda b, v, r: str(int(var_date(b.item['posted'], '%W'))),
+    ('Posts', 'Year') :                 lambda b, v, r: var_date(b.item['posted'], '%Y'),
+    ('Posts', 'ShortYear') :            lambda b, v, r: var_date(b.item['posted'], '%y'),
+    ('Posts', 'TimeAgo') :              lambda b, v, r: '%d days ago'%(datetime.now()-datetime.strptime(b.item['posted'], '%Y/%m/%d')).days, # TODO TimeAgo
+    ('Posts', 'PostNotes') :            lambda b, v, r: var_post_notes(b.item['notes']),
+    ('Tags', 'Tag') :                   lambda b, v, r: b.item,
+    ('Tags', 'TagURL') :                lambda b, v, r: '/tagged/%s'%var_url_safe(b.item),
+    ('Tags', 'TagURLChrono') :          lambda b, v, r: '/tagged/%s/chrono'%var_url_safe(b.item),
+    ('Tags', 'URLSafeTag') :            lambda b, v, r: var_url_safe(b.item),
+    ('', 'PreviousPage') :              lambda b, v, r: r.context['pagination']['prev_page'],
+    ('', 'NextPage') :                  lambda b, v, r: r.context['pagination']['next_page'],
+    ('', 'TotalPages') :                lambda b, v, r: '%s'%r.context['total_pages'],
+    ('', 'CurrentPage') :               lambda b, v, r: '%s'%r.context['current_page'],
+    ('', 'PreviousPost') :              lambda b, v, r: var_perma(r.context['permalink_pagination']['prev_post']),
+    ('', 'NextPost') :                  lambda b, v, r: var_perma(r.context['permalink_pagination']['next_post']),
 }
 
 for dim in [16,24,30,40,48,64,96,128]:
@@ -189,32 +199,32 @@ for dim in [16,24,30,40,48,64,96,128]:
 
 
 block_mapping = {
-    ('', 'Description') :           lambda b, p: p.conf.has_key('description'),
-    ('', 'PermalinkPage') :         lambda b, p: p.context['type'] == 'perma',
-    ('', 'IndexPage') :             lambda b, p: p.context['type'] == 'index',
-    ('', 'PostTitle') :             lambda b, p: p.context.has_key('posts') and len(p.context['posts']) > 0 and p.context['posts'][0].has_key('title'),
-    ('', 'PostSummary') :           lambda b, p: p.context.has_key('posts') and len(p.context['posts']) > 0,
-    ('', 'HasPages') :              lambda b, p: p.conf.has_key('pages'),
-    ('', 'Pages') :                 lambda b, p: p.conf['pages'],
-    ('', 'Posts') :                 lambda b, p: p.context['posts'],
-    ('Posts', 'Title') :            lambda b, p: p.item.has_key('title'),
-    ('Posts', 'HasTags') :          lambda b, p: p.item.has_key('tags'),
-    ('Posts', 'Tags') :             lambda b, p: p.item['tags'],
-    ('Posts', 'Lines') :            lambda b, p: p.item['dialogue'],
-    ('Lines', 'Label') :            lambda b, p: p.item.has_key('label'),
-    ('Posts', 'Text') :             lambda b, p: p.item['type'].capitalize() == b.name,
-    ('Posts', 'Quote') :            lambda b, p: p.item['type'].capitalize() == b.name,
-    ('Posts', 'Source') :           lambda b, p: p.item.has_key('source'),
-    ('Posts', 'Link') :             lambda b, p: p.item['type'].capitalize() == b.name,
-    ('Posts', 'Chat') :             lambda b, p: p.item['type'].capitalize() == b.name,
-    ('Posts', 'Date') :             lambda b, p: True,
-    # TODO PostNotes ('Posts', 'PostNotes') :        lambda b, p: p.item.has_key('notes') and len(p.item['notes']) > 0,
-    ('', 'Pagination') :            lambda b, p: p.context.has_key('pagination'),
-    ('', 'PreviousPage') :          lambda b, p: p.context['pagination']['prev_page'],
-    ('', 'NextPage') :              lambda b, p: p.context['pagination']['next_page'],
-    ('', 'PermalinkPagination') :   lambda b, p: p.context.has_key('permalink_pagination'),
-    ('', 'PreviousPost') :          lambda b, p: p.context['permalink_pagination']['prev_post'],
-    ('', 'NextPost') :              lambda b, p: p.context['permalink_pagination']['next_post'],
+    ('', 'Description') :           lambda b, p, r: r.conf.has_key('description'),
+    ('', 'PermalinkPage') :         lambda b, p, r: r.context['type'] == 'perma',
+    ('', 'IndexPage') :             lambda b, p, r: r.context['type'] == 'index',
+    ('', 'PostTitle') :             lambda b, p, r: r.context.has_key('posts') and len(r.context['posts']) > 0 and r.context['posts'][0].has_key('title'),
+    ('', 'PostSummary') :           lambda b, p, r: r.context.has_key('posts') and len(r.context['posts']) > 0,
+    ('', 'HasPages') :              lambda b, p, r: r.conf.has_key('pages'),
+    ('', 'Pages') :                 lambda b, p, r: r.conf['pages'],
+    ('', 'Posts') :                 lambda b, p, r: r.context['posts'],
+    ('Posts', 'Title') :            lambda b, p, r: p.item.has_key('title'),
+    ('Posts', 'HasTags') :          lambda b, p, r: p.item.has_key('tags'),
+    ('Posts', 'Tags') :             lambda b, p, r: p.item['tags'],
+    ('Posts', 'Lines') :            lambda b, p, r: p.item['dialogue'],
+    ('Lines', 'Label') :            lambda b, p, r: p.item.has_key('label'),
+    ('Posts', 'Text') :             lambda b, p, r: p.item['type'].capitalize() == b.name,
+    ('Posts', 'Quote') :            lambda b, p, r: p.item['type'].capitalize() == b.name,
+    ('Posts', 'Source') :           lambda b, p, r: p.item.has_key('source'),
+    ('Posts', 'Link') :             lambda b, p, r: p.item['type'].capitalize() == b.name,
+    ('Posts', 'Chat') :             lambda b, p, r: p.item['type'].capitalize() == b.name,
+    ('Posts', 'Date') :             lambda b, p, r: True,
+    # TODO PostNotes ('Posts', 'PostNotes') :        lambda b, p, r: p.item.has_key('notes') and len(p.item['notes']) > 0,
+    ('', 'Pagination') :            lambda b, p, r: r.context.has_key('pagination'),
+    ('', 'PreviousPage') :          lambda b, p, r: r.context['pagination']['prev_page'],
+    ('', 'NextPage') :              lambda b, p, r: r.context['pagination']['next_page'],
+    ('', 'PermalinkPagination') :   lambda b, p, r: r.context.has_key('permalink_pagination'),
+    ('', 'PreviousPost') :          lambda b, p, r: r.context['permalink_pagination']['prev_post'],
+    ('', 'NextPost') :              lambda b, p, r: r.context['permalink_pagination']['next_post'],
 }
 
 
@@ -232,13 +242,13 @@ def create_blocks(conf):
             var = ''
             for s in v.split(':')[1].split(' '):
                 var += s.capitalize()
-            blocks[('', 'If%s'%var)] = lambda b, p: conf['variables'][v] == 1
-            blocks[('', 'IfNot%s'%var)] = lambda b, p: conf['variables'][v] != 1
+            blocks[('', 'If%s'%var)] = lambda b, p, r: conf['variables'][v] == 1
+            blocks[('', 'IfNot%s'%var)] = lambda b, p, r: conf['variables'][v] != 1
         else:
             var = ''
             for s in v.split(':')[1].split(' '):
                 var += s.capitalize()
-            blocks[('', 'If%s'%var)] = lambda b, p: True
+            blocks[('', 'If%s'%var)] = lambda b, p, r: True
     return blocks
 
             
@@ -248,7 +258,7 @@ def create_vars(conf):
     vars = {}
     vars.update(var_mapping)
     for v in conf['variables']:
-        vars[('', v)] = lambda b, v: conf['variables'][v] 
+        vars[('', v)] = lambda b, v, r: conf['variables'][v] 
     return vars
 
 
@@ -274,18 +284,18 @@ def create_script(tpl_file):
                     func_ids[name] = id
                 id_s = '%s_%d'%(name, id)
                 id_stack.append(id_s)
-                lines.append('%sblock = Block(\'%s\', parent = block)'%('\t' * indent, name))
-                lines.append('%sdef block_%s(block):'%('\t' * indent, id_s))
+                lines.append('%srenderer.block = Block(\'%s\', parent = renderer.block)'%('\t' * indent, name))
+                lines.append('%sdef block_%s(renderer):'%('\t' * indent, id_s))
                 indent += 1
             elif part.startswith('{/block:'):
                 indent -= 1
-                lines.append('%sblock.render(block_%s)'%('\t' * indent, id_stack.pop()))
-                lines.append('%sblock = block.parent'%('\t' * indent))
+                lines.append('%srenderer.render(block_%s)'%('\t' * indent, id_stack.pop()))
+                lines.append('%srenderer.block = renderer.block.parent'%('\t' * indent))
             elif part.startswith('{'):
-                lines.append('%sblock.var(\'%s\')'%('\t' * indent, part[1:len(part) - 1]))
+                lines.append('%srenderer.var(\'%s\')'%('\t' * indent, part[1:len(part) - 1]))
             else:
                 if len(part) > 0:
-                    lines.append('%sblock.raw(\'%s\')'%('\t' * indent, part.replace('\'', '\\\'')))
+                    lines.append('%srenderer.raw(\'%s\')'%('\t' * indent, part.replace('\'', '\\\'')))
                     
     return '\n'.join(lines)
         
@@ -316,7 +326,7 @@ class Engine:
             
         context = prepare_context(self.conf)
         output = []
-        block = Block('', output = output, context = context, conf = self.conf, vars = create_vars(self.conf), blocks = create_blocks(self.conf))
+        renderer = Renderer(output, context,self.conf, create_vars(self.conf), create_blocks(self.conf))
         exec(self.script)
         
         return ''.join(output)
