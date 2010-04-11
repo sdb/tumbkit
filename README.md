@@ -7,6 +7,17 @@ Note that this is still a work in progress and at the moment not all
 functionality is implemented. See the feature overview below for more
 information.
 
+Installation
+------------
+
+Tumbkit is written in [Python][py] so you need to install Python first.
+
+Tumbkit depends on [Bottle][b] (a fast and simple Python web framework):
+
+    easy_install -U bottle
+
+Download tumbkit.py and place it somewhere on your system.
+
 
 Usage
 -----
@@ -80,3 +91,4 @@ This work is licensed under the [MIT license][m].
 [t]:http://www.tumblr.com/
 [m]:http://www.opensource.org/licenses/mit-license.php
 [b]:http://github.com/defnull/bottle
+[py]:http://www.python.org/
