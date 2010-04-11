@@ -186,6 +186,10 @@ var_mapping = {
     ('', 'CurrentPage') :               lambda b, v, r: '%s'%r.context['current_page'],
     ('', 'PreviousPost') :              lambda b, v, r: var_perma(r.context['permalink_pagination']['prev_post']),
     ('', 'NextPost') :                  lambda b, v, r: var_perma(r.context['permalink_pagination']['next_post']),
+    ('', 'Tag') :                       lambda b, v, r: r.context['tag'],
+    ('', 'TagURL') :                    lambda b, v, r: '/tagged/%s'%var_url_safe(r.context['tag']),
+    ('', 'TagURLChrono') :              lambda b, v, r: '/tagged/%s/chrono'%var_url_safe(r.context['tag']),
+    ('', 'URLSafeTag') :                lambda b, v, r: var_url_safe(r.context['tag']),
 }
 
 for dim in [16,24,30,40,48,64,96,128]:
@@ -219,6 +223,7 @@ block_mapping = {
     ('', 'PermalinkPagination') :   lambda b, p, r: r.context.has_key('permalink_pagination'),
     ('', 'PreviousPost') :          lambda b, p, r: r.context['permalink_pagination']['prev_post'],
     ('', 'NextPost') :              lambda b, p, r: r.context['permalink_pagination']['next_post'],
+    ('', 'TagPage') :               lambda b, p, r: r.context['type'] == 'tagged',
 }
 
 
@@ -265,7 +270,7 @@ def create_conf(conf_file):
         else:    
             dest[key] = v
             
-        
+    
     conf = json.load(open(conf_file, 'r'))
     
     copy = {}
@@ -473,6 +478,7 @@ def tagged(tag, pagenr = 1):
                 posts.append(p)
         posts = sorted(posts, key=lambda k: k['posted'], reverse=True)
         context['type'] = 'tagged'
+        context['tag'] = tag
         return prepare_context_for_posts(posts_per_page, pagenr, len(posts), posts[(pagenr-1)*posts_per_page:(posts_per_page*pagenr)], context, '/tagged/%s'%tag)
     
     pagenr = int(pagenr)
