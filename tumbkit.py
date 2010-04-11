@@ -113,19 +113,13 @@ class HtmlStripper(HTMLParser):
     def get_data(self):
          return ''.join(self.data)
    
-    
-    
+   
 def safe_html(s):
     """ """
     
     stripper = HtmlStripper()
     stripper.feed(s)
     return stripper.get_data()
-
-        
-def var_date(s, fmt):
-    d = datetime.strptime(s, '%Y/%m/%d')
-    return d.strftime(fmt)
 
 def var_perma(post):
     p = post['title'] if post.has_key('title') else 'summary' # TODO post summary
@@ -156,31 +150,31 @@ var_mapping = {
     ('Posts', 'Source') :               lambda b, v, r: b.item['source'],
     ('Lines', 'Line') :                 lambda b, v, r: b.item['text'],
     ('Lines', 'Label') :                lambda b, v, r: b.item['label'],
-    ('Posts', 'AmPm') :                 lambda b, v, r: var_date(b.item['posted'], '%p').lower(),
-    ('Posts', 'CapitalAmPm') :          lambda b, v, r: var_date(b.item['posted'], '%p').upper(),
-    ('Posts', '12Hour') :               lambda b, v, r: str(int(var_date(b.item['posted'], '%I'))),
-    ('Posts', '24Hour') :               lambda b, v, r: str(int(var_date(b.item['posted'], '%H'))),
-    ('Posts', '12HourWithZero') :       lambda b, v, r: var_date(b.item['posted'], '%I'),
-    ('Posts', '24HourWithZero') :       lambda b, v, r: var_date(b.item['posted'], '%H'),
-    ('Posts', 'Month') :                lambda b, v, r: var_date(b.item['posted'], '%B'),
-    ('Posts', 'Minutes') :              lambda b, v, r: var_date(b.item['posted'], '%M'),
-    ('Posts', 'Seconds') :              lambda b, v, r: var_date(b.item['posted'], '%S'),
-    ('Posts', 'Beats') :                lambda b, v, r: var_date(b.item['posted'], '%f'),
+    ('Posts', 'AmPm') :                 lambda b, v, r: b.item['posted'].strftime('%p').lower(),
+    ('Posts', 'CapitalAmPm') :          lambda b, v, r: b.item['posted'].strftime('%p').upper(),
+    ('Posts', '12Hour') :               lambda b, v, r: str(int(b.item['posted'].strftime('%I'))),
+    ('Posts', '24Hour') :               lambda b, v, r: str(int(b.item['posted'].strftime('%H'))),
+    ('Posts', '12HourWithZero') :       lambda b, v, r: b.item['posted'].strftime('%I'),
+    ('Posts', '24HourWithZero') :       lambda b, v, r: b.item['posted'].strftime('%H'),
+    ('Posts', 'Month') :                lambda b, v, r: b.item['posted'].strftime('%B'),
+    ('Posts', 'Minutes') :              lambda b, v, r: b.item['posted'].strftime('%M'),
+    ('Posts', 'Seconds') :              lambda b, v, r: b.item['posted'].strftime('%S'),
+    ('Posts', 'Beats') :                lambda b, v, r: b.item['posted'].strftime('%f'),
     ('Posts', 'Timestamp') :            lambda b, v, r: '', # TODO Timestamp
-    ('Posts', 'ShortMonth') :           lambda b, v, r: var_date(b.item['posted'], '%b'),
-    ('Posts', 'MonthNumberWithZero') :  lambda b, v, r: var_date(b.item['posted'], '%m'),
-    ('Posts', 'MonthNumber') :          lambda b, v, r: str(int(var_date(b.item['posted'], '%m'))),
-    ('Posts', 'DayOfMonthWithZero') :   lambda b, v, r: var_date(b.item['posted'], '%d'),
-    ('Posts', 'DayOfWeek') :            lambda b, v, r: var_date(b.item['posted'], '%A'),
-    ('Posts', 'ShortDayOfWeek') :       lambda b, v, r: var_date(b.item['posted'], '%a'),
-    ('Posts', 'DayOfWeekNumber') :      lambda b, v, r: var_date(b.item['posted'], '%w'), # TODO should be 1 through 7
-    ('Posts', 'DayOfMonth') :           lambda b, v, r: str(int(var_date(b.item['posted'], '%d'))),
+    ('Posts', 'ShortMonth') :           lambda b, v, r: b.item['posted'].strftime('%b'),
+    ('Posts', 'MonthNumberWithZero') :  lambda b, v, r: b.item['posted'].strftime('%m'),
+    ('Posts', 'MonthNumber') :          lambda b, v, r: str(int(b.item['posted'].strftime('%m'))),
+    ('Posts', 'DayOfMonthWithZero') :   lambda b, v, r: b.item['posted'].strftime('%d'),
+    ('Posts', 'DayOfWeek') :            lambda b, v, r: b.item['posted'].strftime('%A'),
+    ('Posts', 'ShortDayOfWeek') :       lambda b, v, r: b.item['posted'].strftime('%a'),
+    ('Posts', 'DayOfWeekNumber') :      lambda b, v, r: b.item['posted'].strftime('%w'), # TODO should be 1 through 7
+    ('Posts', 'DayOfMonth') :           lambda b, v, r: str(int(b.item['posted'].strftime('%d'))),
     ('Posts', 'DayOfMonthSuffix') :     lambda b, v, r: '', # TODO DayOfMonthSuffix
-    ('Posts', 'DayOfYear') :            lambda b, v, r: str(int(var_date(b.item['posted'], '%j'))),
-    ('Posts', 'WeekOfYear') :           lambda b, v, r: str(int(var_date(b.item['posted'], '%W'))),
-    ('Posts', 'Year') :                 lambda b, v, r: var_date(b.item['posted'], '%Y'),
-    ('Posts', 'ShortYear') :            lambda b, v, r: var_date(b.item['posted'], '%y'),
-    ('Posts', 'TimeAgo') :              lambda b, v, r: '%d days ago'%(datetime.now()-datetime.strptime(b.item['posted'], '%Y/%m/%d')).days, # TODO TimeAgo
+    ('Posts', 'DayOfYear') :            lambda b, v, r: str(int(b.item['posted'].strftime('%j'))),
+    ('Posts', 'WeekOfYear') :           lambda b, v, r: str(int(b.item['posted'].strftime('%W'))),
+    ('Posts', 'Year') :                 lambda b, v, r: b.item['posted'].strftime('%Y'),
+    ('Posts', 'ShortYear') :            lambda b, v, r: b.item['posted'].strftime('%y'),
+    ('Posts', 'TimeAgo') :              lambda b, v, r: '%d days ago'%(datetime.now()-b.item['posted']).days, # TODO TimeAgo
     ('Posts', 'PostNotes') :            lambda b, v, r: var_post_notes(b.item['notes']),
     ('Tags', 'Tag') :                   lambda b, v, r: b.item,
     ('Tags', 'TagURL') :                lambda b, v, r: '/tagged/%s'%var_url_safe(b.item),
@@ -229,7 +223,56 @@ block_mapping = {
 
 
 def create_conf(conf_file):
-    return json.load(open(conf_file, 'r'))
+    
+    def override_copy(key, src, dest):
+        if key == 'posted' and type(src[key]) is unicode:
+            dest[key] = datetime.strptime(src[key], '%Y/%m/%d')
+            return True
+        elif key == 'dialogue':
+            dest[key] = []
+            for i, e in enumerate(src[key]):
+                if type(e) is unicode:
+                    s = e.split(':')
+                    dest[key].append({})
+                    if len(s) > 1:
+                        dest[key][i]['label'] = s[0]
+                        dest[key][i]['text'] = s[1]
+                    else:
+                        dest[key][i]['label'] = None
+                        dest[key][i]['text'] = s[1]
+                else:
+                    copy_conf(i, src[key], dest[key])
+            return True
+        return False
+    
+    def copy_conf(key, src, dest):
+        if override_copy(key, src, dest):
+            return
+        
+        if type(src[key]) is dict:  
+            v = {}
+            for k in src[key]:
+                copy_conf(k, src[key], v)
+        elif type(src[key]) is list:
+            v = []
+            for i, e in enumerate(src[key]):
+                copy_conf(i, src[key], v)
+        else:
+            v = src[key]
+        
+        if type(key) is int:
+            dest.append(v)
+        else:    
+            dest[key] = v
+            
+        
+    conf = json.load(open(conf_file, 'r'))
+    
+    copy = {}
+    for k in conf:
+        copy_conf(k, conf, copy)            
+        
+    return copy
 
 
 def create_blocks(conf):
@@ -356,7 +399,7 @@ def index(pagenr = 1):
     def prepare_context(conf):
         context = {}
         posts_per_page = conf['post_per_page']
-        posts = sorted(conf['posts'], key=lambda k: datetime.strptime(k['posted'], '%Y/%m/%d'), reverse=True)[(pagenr-1)*posts_per_page:(posts_per_page*pagenr)]
+        posts = sorted(conf['posts'], key=lambda k: k['posted'], reverse=True)[(pagenr-1)*posts_per_page:(posts_per_page*pagenr)]
         context['type'] = 'index'
         return prepare_context_for_posts(posts_per_page, pagenr, len(conf['posts']), posts, context, '')
     
@@ -428,7 +471,7 @@ def tagged(tag, pagenr = 1):
         for p in conf['posts']:
             if p.has_key('tags') and tag in p['tags']:
                 posts.append(p)
-        posts = sorted(posts, key=lambda k: datetime.strptime(k['posted'], '%Y/%m/%d'), reverse=True)
+        posts = sorted(posts, key=lambda k: k['posted'], reverse=True)
         context['type'] = 'tagged'
         return prepare_context_for_posts(posts_per_page, pagenr, len(posts), posts[(pagenr-1)*posts_per_page:(posts_per_page*pagenr)], context, '/tagged/%s'%tag)
     

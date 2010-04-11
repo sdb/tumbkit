@@ -62,14 +62,8 @@
 			"posted" : "2010/01/09",
 			"tags" : ["tourist"],
 			"dialogue" : [
-				{
-					"label" : "Tourist:",
-					"text" : "Could you give us directions to Olive Garden?"
-				},
-				{
-					"label" : "New Yorker:",
-					"text" : "No, but I could give you directions to an actual Italian restaurant."
-				}
+				"Tourist:Could you give us directions to Olive Garden?",
+				"New Yorker:No, but I could give you directions to an actual Italian restaurant."
 			]
 		}
 	]
