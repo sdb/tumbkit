@@ -190,8 +190,8 @@ var_mapping = {
     ('', 'TagURL') :                    lambda b, v, r: '/tagged/%s'%var_url_safe(r.context['tag']),
     ('', 'TagURLChrono') :              lambda b, v, r: '/tagged/%s/chrono'%var_url_safe(r.context['tag']),
     ('', 'URLSafeTag') :                lambda b, v, r: var_url_safe(r.context['tag']),
-    ('', 'SearchQuery') :               lambda b, v, r: r.context['query'],
-    ('', 'URLSafeSearchQuery') :        lambda b, v, r: var_url_safe(r.context['query']),
+    ('', 'SearchQuery') :               lambda b, v, r: r.context['query'] if r.context.has_key('query') else None,
+    ('', 'URLSafeSearchQuery') :        lambda b, v, r: var_url_safe(r.context['query'] if r.context.has_key('query') else None),
     ('', 'SearchResultCount') :         lambda b, v, r: r.context['result_count'],
 }
 
