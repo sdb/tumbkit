@@ -141,7 +141,9 @@ var_mapping = {
     ('', 'PostSummary') :               lambda b, v, r: '', # TODO post summary
     ('Pages', 'URL') :                  lambda b, v, r: '/%s'%b.item['url'],
     ('Pages', 'Label') :                lambda b, v, r: b.item['title'],
+    ('Posts', 'Permalink') :            lambda b, v, r: b.item['id'],
     ('Posts', 'Permalink') :            lambda b, v, r: var_perma(b.item),
+    ('Posts', 'ShortURL') :             lambda b, v, r: var_perma(b.item),
     ('Posts', 'Title') :                lambda b, v, r: b.item['title'],
     ('Posts', 'Body') :                 lambda b, v, r: b.item['body'],
     ('Posts', 'Description') :          lambda b, v, r: b.item['description'],
