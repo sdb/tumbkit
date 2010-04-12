@@ -54,6 +54,7 @@ URL's:
 * index pages ('/' and '/page/$pagenr')
 * post (permalink) pages ('/posts/$postid/$perma')
 * tag pages ('/tagged/$tag' and '/tagged/$tag/page/$pagenr')
+* search pages ('/search/$query' and '/search/$query/page/$pagenr')
 * random page ('/random')
 
 Theme:
@@ -70,7 +71,6 @@ Not yet:
 
 * reblogged, notes
 * followings
-* search (page)
 * day pages
 * photo, audio, video, answer posts
 * ...
