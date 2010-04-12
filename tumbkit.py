@@ -219,6 +219,8 @@ var_mapping = {
     ('', 'URLSafeSearchQuery') :        lambda b, v, r: var_url_safe(r.context['query'] if r.context.has_key('query') else None),
     ('', 'SearchResultCount') :         lambda b, v, r: r.context['result_count'],
     ('', 'TwitterUsername') :           lambda b, v, r: r.conf['twitter'],
+    ('', 'PreviousDayPage') :           lambda b, v, r: r.context['day_pagination']['prev_day'],
+    ('', 'NextDayPage') :               lambda b, v, r: r.context['day_pagination']['next_day'],
 }
 
 for dim in [16,24,30,40,48,64,96,128]:
@@ -257,6 +259,10 @@ block_mapping = {
     ('', 'PreviousPost') :          lambda b, p, r: r.context['permalink_pagination']['prev_post'],
     ('', 'NextPost') :              lambda b, p, r: r.context['permalink_pagination']['next_post'],
     ('', 'TagPage') :               lambda b, p, r: r.context['type'] == 'tagged',
+    ('', 'DayPage') :               lambda b, p, r: r.context['type'] == 'day',
+    ('', 'DayPagination') :         lambda b, p, r: r.context.has_key('day_pagination'),
+    ('', 'PreviousDayPage') :       lambda b, p, r: r.context['day_pagination'].has_key('prev_day'),
+    ('', 'NextDayPage') :           lambda b, p, r: r.context['day_pagination'].has_key('next_day'),
     ('', 'SearchPage') :            lambda b, p, r: r.context['type'] == 'search',
     ('', 'NoSearchResults') :       lambda b, p, r: r.context['result_count'] == 0,
     ('', 'Twitter') :               lambda b, p, r: r.conf.has_key('twitter'),
@@ -306,6 +312,16 @@ def create_conf(conf_file):
         else:    
             dest[key] = v
             
+    def post_process(conf):
+        c = {}
+        for p in conf['posts']:
+            k = (p['posted'].year, p['posted'].month, p['posted'].day)
+            if not c.has_key(k):
+                c[k] = []
+            c[k].append(p)
+        conf['posts_by_day'] = c
+        return conf
+        
     
     conf = json.load(open(conf_file, 'r'))
     
@@ -313,7 +329,7 @@ def create_conf(conf_file):
     for k in conf:
         copy_conf(k, conf, copy)            
         
-    return copy
+    return post_process(copy)
 
 
 def create_blocks(conf):
@@ -515,7 +531,31 @@ def search(query = None, pagenr = 1):
 def day(year, month, day):
     """ """
     
-    return 'Not yet supported'
+    def prepare_context(conf):
+        context = {}
+        d = (year, month, day)
+        context['posts'] = conf['posts_by_day'][d]
+        context['type'] = 'day'
+        keys = sorted(conf['posts_by_day'].keys(), reverse=True)
+        for i, e in enumerate(keys):
+            if e == d:
+                None
+                break
+        if len(keys) > 0:
+            context['day_pagination'] = {}
+            if i > 0:
+                prev = keys[i-1]
+                context['day_pagination']['prev_day'] = '/day/%d/%d/%d'%(prev[0], prev[1], prev[2])
+            if i < len(keys) - 1:
+                prev = keys[i+1]
+                context['day_pagination']['next_day'] = '/day/%d/%d/%d'%(prev[0], prev[1], prev[2])
+            
+        return context
+    
+    year = int(year)
+    month = int(month)
+    day = int(day)
+    return engine.apply(prepare_context)
 
 
 @route('/tagged/:tag/page/:pagenr')

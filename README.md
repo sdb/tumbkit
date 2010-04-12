@@ -55,13 +55,14 @@ URL's:
 * post (permalink) pages ('/posts/$postid/$perma')
 * tag pages ('/tagged/$tag' and '/tagged/$tag/page/$pagenr')
 * search pages ('/search/$query' and '/search/$query/page/$pagenr')
+* day pages ('/day/$year/$month/$day')
 * random page ('/random')
 
 Theme:
 
-* all basic variables, except PostSummary
+* all basic variables (except PostSummary)
 * text, link, chat and quote posts
-* pagination (not yet for day pages)
+* pagination
 * variables for custom pages
 * all date variables
 * tags and notes on posts
@@ -71,9 +72,8 @@ Not yet:
 
 * reblogged
 * followings and likes
-* day pages
 * photo, audio, video, answer posts
-* ...
+* group blogs and posts
 
 
 Dependencies
