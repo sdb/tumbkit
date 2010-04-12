@@ -10,7 +10,7 @@ information.
 Tumbkit offers a server which serves your custom Tumblr template (theme).
 This allows you to develop the themes on your local machine. All you have
 to do is to create a configuration file in JSON format that contains some
-sample data and then you're ready to go (see the sample_cfg.json file for
+sample data and then you're ready to go (see the test/cfg.json file for
 an example configuration file).
 
 Installation
