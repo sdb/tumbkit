@@ -9,7 +9,7 @@ import json, re, os, random, sys, getopt, types
 import bottle
 
 from os.path import getmtime
-from bottle import route, redirect
+from bottle import route, redirect, request
 from datetime import datetime
 from HTMLParser import HTMLParser
 
@@ -450,11 +450,29 @@ def archive():
     return 'Not supported'
 
 
+@route('/search/:query/page/:pagenr')
 @route('/search/:query')
-def search(query):
+@route('/search', method='GET')
+def search(query = None, pagenr = 1):
     """ """
     
-    return 'Not yet supported'
+    def prepare_context(conf):
+        context = {}
+        posts_per_page = conf['post_per_page']
+        if query == 'noresult':
+            posts = []
+        else:
+            posts = conf['posts']
+        posts = sorted(posts, key=lambda k: k['posted'], reverse=True)
+        context['type'] = 'search'
+        context['query'] = query
+        context['result_count'] = len(posts)
+        return prepare_context_for_posts(posts_per_page, pagenr, len(posts), posts[(pagenr-1)*posts_per_page:(posts_per_page*pagenr)], context, '/search/%s'%query)
+    
+    pagenr = int(pagenr)
+    if not query:
+        query = request.GET.get('q', '').strip()
+    return engine.apply(prepare_context)
 
 
 @route('/day/:year/:month/:day')
