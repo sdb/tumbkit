@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  {block:Description}<meta name="description" content="{MetaDescription}" />{/block:Description}
+  <title>{Title}{block:TagPage} | Posts tagged: {Tag}{/block:TagPage}{block:SearchPage} | Search results for: {SearchQuery}{/block:SearchPage}{block:PostTitle} | {PostTitle}{/block:PostTitle}</title>
+  <link rel="shortcut icon" href="{Favicon}" />
+  <link rel="alternate" type="application/rss+xml" href="{RSS}" />
+  <meta name="text:Subtitle" content="" />
+</head>
+<body>
+
+<div id="top">
+  <h1><a href="/">{Title}</a></h1>
+  {block:IfSubtitle}<h3>{text:Subtitle}</h3>{/block:IfSubtitle}
+  <br clear="all">
+</div>
+
+<div id="main">
+
+  <div id="sidebar">
+
+    {block:Description}
+    <div id="info" class="widget">
+      <p style="margin-top: 0;">{Description}</p>
+      <br clear="all" />
+    </div>
+    {/block:Description}
+
+    <div class="widget">
+      <ul class="blogroll">
+        <!-- <li>
+          <a href="http://www.tumblr.com/follow/{Name}">Follow</a>
+        </li> -->
+        <li><a href="{RSS}">RSS Feed</a></li>
+        <li><a href="/random">Random</a></li>
+        <li><a href="/archive">Archive</a></li>
+		{block:Twitter}
+		<li><a href="http://twitter.com/{TwitterUsername}">Twitter</a></li>
+		{/block:Twitter}
+      </ul>
+      <br clear="all" />
+    </div>
+
+    <div id="search" class="widget">
+      <form action="/search" method="get">
+        <input id="query" type="text" name="q" value="{SearchQuery}"/>
+        <input type="submit" value="Search"/>
+      </form>
+      <br clear="all" />
+    </div>
+
+    {block:HasPages}
+    <div class="widget">
+      <ul class="blogroll">
+      {block:Pages}<li><a href="{URL}" class="page">{Label}</a></li>{/block:Pages}
+      </ul>
+    </div>
+    {/block:HasPages}
+
+  </div>
+
+  {block:DayPage}
+    <div id="day_results">Viewing all posts posted on <strong>"{DayOfMonth}{DayOfMonthSuffix} {Month} {Year}"</strong></div>
+  {/block:DayPage}
+
+  {block:TagPage}
+    <div id="tagged_results">Viewing all posts tagged <strong>"{Tag}"</strong></div>
+  {/block:TagPage}
+
+  {block:SearchPage}
+    <div id="search_results" class="search-result-count">{SearchResultCount} results for <strong>"{SearchQuery}"</strong></div>
+  
+  {block:NoSearchResults}
+    <style type="text/css">
+        .search-result-count {
+            display: none;
+        }
+    </style>
+    <div id="search_results">No results for <strong>"{SearchQuery}"</strong></div>
+  {/block:NoSearchResults}
+  
+  {/block:SearchPage}
+
+  {block:Posts}
+  <div class="post">
+
+	{block:Date}
+    <div class="date">
+      <div class="date_brick"><a href="{Permalink}">{ShortMonth}<br>{Year}</a></div>
+      <a href="/day/{Year}/{MonthNumberWithZero}/{DayOfMonthWithZero}">{DayOfMonth}</a>
+    </div>
+    {/block:Date}
+
+    {block:Text}
+    <div class="text">
+      {block:Title}<h2><a href="{Permalink}">{Title}</a></h2>{/block:Title}
+      {Body}
+    </div>
+    {/block:Text}
+
+    {block:Link}
+      <div class="link">
+        <h2><a href="{URL}" {Target}>{Name} &raquo;</a></h2>
+        {block:Description}{Description}{/block:Description}
+      </div>
+    {/block:Link}
+
+    {block:Chat}
+      <div class="chat">
+        {block:Title}<h2><a href="{Permalink}">{Title}</a></h2>{/block:Title}
+        <ul>
+          {block:Lines}
+          <li class="line {Alt}">{block:Label}<strong>{Label}</strong>{/block:Label} {Line}</li>
+          {/block:Lines}
+        </ul>
+      </div>
+    {/block:Chat}
+
+    {block:Quote}
+      <div class="quote">
+        <p class="quote {Length}">{Quote}</p>
+        <p class="copy">&mdash; {block:Source}{Source}{/block:Source}</p>
+      </div>
+    {/block:Quote}
+
+    {block:Photo}
+      {LinkOpenTag}<img src="{PhotoURL-400}" alt="{PhotoAlt}" />{LinkCloseTag}
+      {block:Caption}<p class="copy">{Caption}</p>{/block:Caption}
+    {/block:Photo}
+
+    {block:Video}
+      {Video-400}
+      {block:Caption}<p class="copy">{Caption}</p>{/block:Caption}
+    {/block:Video}
+
+    <div class="footer">
+      {block:HasTags}
+        <ul class="tags">
+          {block:Tags}
+            <li><a href="{TagURL}">{Tag}</a></li>
+          {/block:Tags}
+        </ul>
+      {/block:HasTags}
+      <ul class="links">
+        {block:RebloggedFrom}<li><a href="{ReblogParentURL}">via&nbsp;{ReblogParentName}</a></li>{/block:RebloggedFrom}
+        {block:IfDisqusShortname}<li><a href="{Permalink}#comments">Comments</a></li>{/block:IfDisqusShortname}
+        {block:NoteCount}<li><a href="{Permalink}#notes">{NoteCountWithLabel}</a></li>{/block:NoteCount}
+        <li><a href="/day/{Year}/{MonthNumberWithZero}/{DayOfMonthWithZero}">{TimeAgo}</a></li>
+      </ul>
+      <br clear="all" />
+    </div>
+
+    {block:PostNotes}
+    <div id="notes">
+      <h4>{NoteCountWithLabel}</h4>
+      {PostNotes}
+    </div>
+    {/block:PostNotes}
+
+    {block:Permalink}
+    {block:IfDisqusShortname}
+    <div id="comments">
+      <h4>Comments</h4>
+      <div id="disqus_thread"></div>
+      <script type="text/javascript" src="http://disqus.com/forums/{text:Disqus Shortname}/embed.js"></script>
+      <noscript><a href="http://{text:Disqus Shortname}.disqus.com/?url=ref">View the discussion thread.</a></noscript>
+    </div>
+    {/block:IfDisqusShortname}
+    {/block:Permalink}
+
+    <br clear="all" />
+  </div>
+  {/block:Posts}
+
+  {block:Pagination}
+    <div id="pagenav">
+    {block:PreviousPage}<a id="newer" href="{PreviousPage}">&lt;&lt;&nbsp;Newer&nbsp;</a>{/block:PreviousPage}
+    {block:NextPage}<a id="older" href="{NextPage}">Older&nbsp;&gt;&gt;</a>{/block:NextPage}
+    <br clear="all" />
+    </div>
+  {/block:Pagination}
+  
+  {block:PermalinkPagination}
+  	<div id="pagenav">
+    {block:PreviousPost}<a id="newer" href="{PreviousPost}">&lt;&lt;&nbsp;Previous&nbsp;</a>{/block:PreviousPost}
+    {block:NextPost}<a id="older" href="{NextPost}">Next&nbsp;&gt;&gt;</a>{/block:NextPost}
+    <br clear="all" />
+    </div>
+  {/block:PermalinkPagination}
+
+  {block:DayPagination}
+    <div id="pagenav">
+    {block:PreviousDayPage}<a id="older" href="{PreviousDayPage}">&lt;&lt;&nbsp;Older&nbsp;</a>{/block:PreviousDayPage}
+    {block:NextDayPage}<a id="newer" href="{NextDayPage}">Newer&nbsp;&gt;&gt;</a>{/block:NextDayPage}
+    <br clear="all" />
+    </div>
+  {/block:DayPagination}
+
+</div>
+
+</body>
+</html>

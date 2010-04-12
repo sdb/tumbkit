@@ -1,4 +1,6 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 """
 Tumbkit is a toolkit to facilitate Tumblr theme development. More information
 is available on the home page at http://github.com/sdb/tumbkit and in README.md

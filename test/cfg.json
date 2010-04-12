@@ -1,0 +1,72 @@
+{
+	"title" : "Tumbkit Theme",
+	"name" : "tumbkit",
+	"description" : "Created and maintained by sdb",
+	"favicon" : "/favicon.ico",
+	"rss" : "/rss",
+	"css" : "",
+	"post_per_page" : 3,
+	"twitter" : "tumbkit",
+	"open_links_in_new_window" : 1,
+	
+	"variables" : {
+		"text:Subtitle" : "A simple theme"
+	},
+	
+	"pages" : [
+		{
+			"url" : "about",
+			"title" : "About",
+			"body" : "<p>Ut adipiscing, magna in pulvinar ullamcorper, tortor purus sagittis ipsum, quis euismod eros velit sed tortor. Curabitur nunc tellus, placerat a laoreet a, molestie id metus. Duis luctus ullamcorper viverra. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam egestas lorem libero, vitae varius tellus.</p>"
+		},
+		{
+			"url" : "contact",
+			"title" : "Contact"
+		}
+	],
+	
+	"posts" : [
+		{
+			"id" : 489880838,
+			"type" : "text",
+			"title" : "In hac habitasse platea dictumst",
+			"posted" : "2010/04/01",
+			"tags" : ["condimentum", "ipsum"],
+			"body" : "<p>Duis condimentum fermentum orci et vulputate. Aliquam eget ligula mauris, quis convallis augue. Nullam semper nunc et mi ultrices consectetur. Praesent est felis, accumsan a laoreet eu, tincidunt non eros. Vestibulum id velit ac mi dictum vulputate dictum eu magna. Vivamus vel orci magna. Suspendisse mattis, purus at interdum congue, orci mi luctus turpis, in tincidunt nulla arcu sed urna. Donec a dolor nunc. Aliquam porta eleifend dui sit amet adipiscing. Vivamus quis ligula sit amet ante convallis luctus.</p>",
+			"notes" : ["tumbkitlover"]
+		},
+		{
+			"id" : 489943894,
+			"type" : "text",
+			"title" : "Nulla diam turpis",
+			"posted" : "2010/01/10",
+			"tags" : ["ipsum"],
+			"body" : "<p>Nulla diam turpis, volutpat eget accumsan vel, imperdiet euismod odio. Sed et libero lacus, vel eleifend mi. Nulla lacinia vulputate risus quis congue. Nullam turpis enim, tristique ac feugiat et, viverra non elit. Integer urna justo, pulvinar at euismod eu, venenatis ac nunc. Suspendisse commodo porta tortor, sit amet posuere ligula congue scelerisque. Morbi a massa sem. Etiam molestie fringilla facilisis. Donec consectetur semper tincidunt. Suspendisse id interdum neque. Nam ut laoreet mauris. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque volutpat bibendum varius.</p><p>In hac habitasse platea dictumst. Duis condimentum fermentum orci et vulputate. Aliquam eget ligula mauris, quis convallis augue. Nullam semper nunc et mi ultrices consectetur. Praesent est felis, accumsan a laoreet eu, tincidunt non eros. Vestibulum id velit ac mi dictum vulputate dictum eu magna. Vivamus vel orci magna. Suspendisse mattis, purus at interdum congue, orci mi luctus turpis, in tincidunt nulla arcu sed urna. Donec a dolor nunc. Aliquam porta eleifend dui sit amet adipiscing. Vivamus quis ligula sit amet ante convallis luctus. Proin arcu turpis, pharetra eu laoreet ac, dignissim molestie purus. Sed mattis leo et risus convallis ultrices. Nullam ac lectus in dui ornare tempus at et metus. In hac habitasse platea dictumst. Fusce eleifend vestibulum viverra.</p>"
+		},
+		{
+			"id" : 490033525,
+			"type" : "quote",
+			"quote" : "It is hard enough to remember my opinions, without also remembering my reasons for them!",
+			"posted" : "2010/03/25",
+			"source" : "Friedrich Nietzsche"
+		},
+		{
+			"id" : 490000077,
+			"type" : "link",
+			"url" : "http://github.com/sdb/tumbkit",
+			"description" : "download",
+			"posted" : "2010/03/30"
+		},
+		{
+			"id" : 492099017,
+			"type" : "chat",
+			"title" : "Nulla diam turpis",
+			"posted" : "2010/01/09",
+			"tags" : ["tourist"],
+			"dialogue" : [
+				"Tourist:Could you give us directions to Olive Garden?",
+				"New Yorker:No, but I could give you directions to an actual Italian restaurant."
+			]
+		}
+	]
+}
