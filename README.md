@@ -1,11 +1,17 @@
 Tumbkit
 =======
 
-Tumbkit is a toolkit to facilitate [Tumblr][t] theme development. 
+Tumbkit is a utility script to facilitate [Tumblr][t] theme development. 
 
 Note that this is still a work in progress and at the moment not all
 functionality is implemented. See the feature overview below for more
 information.
+
+Tumbkit offers a server which serves your custom Tumblr template (theme).
+This allows you to develop the themes on your local machine. All you have
+to do is to create a configuration file in JSON format that contains some
+sample data and then you're ready to go (see the sample_cfg.json file for
+an example configuration file).
 
 Installation
 ------------
@@ -16,17 +22,11 @@ Tumbkit depends on [Bottle][b] (a fast and simple Python web framework):
 
     easy_install -U bottle
 
-Download tumbkit.py and place it somewhere on your system.
+Download tumbkit.py to your project directory.
 
 
 Usage
 -----
-
-Tumbkit offers a server which serves your custom Tumblr template (theme).
-This allows you to develop the themes on your local machine. All you have
-to do is to create a configuration file in JSON format that contains some
-sample data and then you're ready to go (see the sample_cfg.json file for
-an example configuration file).
 
 To start the server execute the following command:
 

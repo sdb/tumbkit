@@ -459,7 +459,7 @@ def archive():
 @route('/search/:query')
 @route('/search', method='GET')
 def search(query = None, pagenr = 1):
-    """ """
+    """ The 'fake' search page. """
     
     def prepare_context(conf):
         context = {}
