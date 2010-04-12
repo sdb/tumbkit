@@ -32,7 +32,9 @@
 			"title" : "In hac habitasse platea dictumst",
 			"posted" : "2010/04/01",
 			"tags" : ["condimentum", "ipsum"],
-			"body" : "<p>Duis condimentum fermentum orci et vulputate. Aliquam eget ligula mauris, quis convallis augue. Nullam semper nunc et mi ultrices consectetur. Praesent est felis, accumsan a laoreet eu, tincidunt non eros. Vestibulum id velit ac mi dictum vulputate dictum eu magna. Vivamus vel orci magna. Suspendisse mattis, purus at interdum congue, orci mi luctus turpis, in tincidunt nulla arcu sed urna. Donec a dolor nunc. Aliquam porta eleifend dui sit amet adipiscing. Vivamus quis ligula sit amet ante convallis luctus.</p>"
+			"body" : "<p>Duis condimentum fermentum orci et vulputate. Aliquam eget ligula mauris, quis convallis augue. Nullam semper nunc et mi ultrices consectetur. Praesent est felis, accumsan a laoreet eu, tincidunt non eros. Vestibulum id velit ac mi dictum vulputate dictum eu magna. Vivamus vel orci magna. Suspendisse mattis, purus at interdum congue, orci mi luctus turpis, in tincidunt nulla arcu sed urna. Donec a dolor nunc. Aliquam porta eleifend dui sit amet adipiscing. Vivamus quis ligula sit amet ante convallis luctus.</p>",
+			"notes" : ["tumbkitlover"]
+			
 		},
 		{
 			"id" : 489943894,

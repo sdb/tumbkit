@@ -130,6 +130,23 @@ def var_perma(post):
 def var_url_safe(v):
     return v.replace(' ', '_') # TODO
 
+def var_post_notes(p, name):
+    
+    def create_note(note, name, type):
+        note.append('<li class="note %s tumblelog_%s without_commentary">'%(type, name))
+        note.append('<a title="%s" href="http://%s.tumblr.com/"><img alt="" class="avatar" src="http://assets.tumblr.com/images/default_avatar_16.gif"></a>'%(n, n))
+        note.append('<span class="action"><a title="%s" href="http://%s.tumblr.com/">%s</a> liked this</span>'%(name, name, name))
+        note.append('<div class="clear"></div>')
+        note.append('</li>')
+        return note
+    
+    note = []    
+    note.append('<ol class="notes">')
+    for n in p['notes']:
+        create_note(note, n, 'like')
+    create_note(note, name, 'reblog')
+    note.append('</ol>')
+    return ''.join(note)
     
 
 var_mapping = {        
@@ -181,7 +198,9 @@ var_mapping = {
     ('Posts', 'Year') :                 lambda b, v, r: b.item['posted'].strftime('%Y'),
     ('Posts', 'ShortYear') :            lambda b, v, r: b.item['posted'].strftime('%y'),
     ('Posts', 'TimeAgo') :              lambda b, v, r: '%d days ago'%(datetime.now()-b.item['posted']).days, # TODO TimeAgo
-    ('Posts', 'PostNotes') :            lambda b, v, r: var_post_notes(b.item['notes']),
+    ('Posts', 'PostNotes') :            lambda b, v, r: var_post_notes(b.item, r.conf['name']),
+    ('Posts', 'NoteCount') :            lambda b, v, r: len(r.context['posts'][0]['notes']),
+    ('Posts', 'NoteCountWithLabel') :   lambda b, v, r: '%d note%s'%(len(r.context['posts'][0]['notes']), 's' if len(r.context['posts'][0]['notes']) > 1 else ''),
     ('Tags', 'Tag') :                   lambda b, v, r: b.item,
     ('Tags', 'TagURL') :                lambda b, v, r: '/tagged/%s'%var_url_safe(b.item),
     ('Tags', 'TagURLChrono') :          lambda b, v, r: '/tagged/%s/chrono'%var_url_safe(b.item),
@@ -229,7 +248,8 @@ block_mapping = {
     ('Posts', 'Date') :             lambda b, p, r: True,
     ('Posts', 'Odd') :              lambda b, p, r: (p.item_index+1)%2,
     ('Posts', 'Even') :             lambda b, p, r: not (p.item_index+1)%2,
-    # TODO PostNotes ('Posts', 'PostNotes') :        lambda b, p, r: p.item.has_key('notes') and len(p.item['notes']) > 0,
+    ('', 'PostNotes') :             lambda b, p, r: r.context['type'] == 'perma' and r.context['posts'][0].has_key('notes') and len(r.context['posts'][0]['notes']) > 0,
+    ('', 'NoteCount') :             lambda b, p, r: r.context['type'] == 'perma' and r.context['posts'][0].has_key('notes') and len(r.context['posts'][0]['notes']) > 0,
     ('', 'Pagination') :            lambda b, p, r: r.context.has_key('pagination'),
     ('', 'PreviousPage') :          lambda b, p, r: r.context['pagination']['prev_page'],
     ('', 'NextPage') :              lambda b, p, r: r.context['pagination']['next_page'],

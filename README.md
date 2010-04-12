@@ -64,13 +64,13 @@ Theme:
 * pagination (not yet for day pages)
 * variables for custom pages
 * all date variables
-* tags for posts
+* tags and notes on posts
 * ...
 
 Not yet:
 
-* reblogged, notes
-* followings
+* reblogged
+* followings and likes
 * day pages
 * photo, audio, video, answer posts
 * ...
