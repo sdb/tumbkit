@@ -72,7 +72,7 @@ class Renderer(object):
         """
         
         text = self.resolve_var(name, self.block)
-        self.output.append('' if text == None else text)
+        self.output.append('' if text == None else str(text))
         
         
     def render(self, render_func):
@@ -190,6 +190,9 @@ var_mapping = {
     ('', 'TagURL') :                    lambda b, v, r: '/tagged/%s'%var_url_safe(r.context['tag']),
     ('', 'TagURLChrono') :              lambda b, v, r: '/tagged/%s/chrono'%var_url_safe(r.context['tag']),
     ('', 'URLSafeTag') :                lambda b, v, r: var_url_safe(r.context['tag']),
+    ('', 'SearchQuery') :               lambda b, v, r: r.context['query'],
+    ('', 'URLSafeSearchQuery') :        lambda b, v, r: var_url_safe(r.context['query']),
+    ('', 'SearchResultCount') :         lambda b, v, r: r.context['result_count'],
 }
 
 for dim in [16,24,30,40,48,64,96,128]:
@@ -224,6 +227,8 @@ block_mapping = {
     ('', 'PreviousPost') :          lambda b, p, r: r.context['permalink_pagination']['prev_post'],
     ('', 'NextPost') :              lambda b, p, r: r.context['permalink_pagination']['next_post'],
     ('', 'TagPage') :               lambda b, p, r: r.context['type'] == 'tagged',
+    ('', 'SearchPage') :            lambda b, p, r: r.context['type'] == 'search',
+    ('', 'NoSearchResults') :       lambda b, p, r: r.context['result_count'] == 0,
 }
 
 
