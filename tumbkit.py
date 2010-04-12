@@ -26,6 +26,7 @@ class Block(object):
         self.name = name
         self.parent = parent
         self.item = None
+        self.item_index = None
                 
 
 class Renderer(object):
@@ -92,8 +93,9 @@ class Renderer(object):
             f = self.blocks[(b.name, self.block.name)]
             v = f(self.block, b, self)
             if type(v) is list:
-                for o in v:
+                for i, o in enumerate(v):
                     self.block.item = o
+                    self.block.item_index = i
                     render_func(self)
             elif v:
                 render_func(self)
@@ -141,7 +143,7 @@ var_mapping = {
     ('', 'PostSummary') :               lambda b, v, r: '', # TODO post summary
     ('Pages', 'URL') :                  lambda b, v, r: '/%s'%b.item['url'],
     ('Pages', 'Label') :                lambda b, v, r: b.item['title'],
-    ('Posts', 'Permalink') :            lambda b, v, r: b.item['id'],
+    ('Posts', 'PostID') :               lambda b, v, r: b.item['id'],
     ('Posts', 'Permalink') :            lambda b, v, r: var_perma(b.item),
     ('Posts', 'ShortURL') :             lambda b, v, r: var_perma(b.item),
     ('Posts', 'Title') :                lambda b, v, r: b.item['title'],
@@ -221,6 +223,8 @@ block_mapping = {
     ('Posts', 'Link') :             lambda b, p, r: p.item['type'].capitalize() == b.name,
     ('Posts', 'Chat') :             lambda b, p, r: p.item['type'].capitalize() == b.name,
     ('Posts', 'Date') :             lambda b, p, r: True,
+    ('Posts', 'Odd') :              lambda b, p, r: (p.item_index+1)%2,
+    ('Posts', 'Even') :             lambda b, p, r: not (p.item_index+1)%2,
     # TODO PostNotes ('Posts', 'PostNotes') :        lambda b, p, r: p.item.has_key('notes') and len(p.item['notes']) > 0,
     ('', 'Pagination') :            lambda b, p, r: r.context.has_key('pagination'),
     ('', 'PreviousPage') :          lambda b, p, r: r.context['pagination']['prev_page'],
