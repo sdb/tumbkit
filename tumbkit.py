@@ -78,8 +78,8 @@ class Renderer(object):
         
     def render(self, render_func):
         """
-        This method checks if the given block should be executed or not. If so,
-        then the given function is executed.
+        This method checks if the current block should be executed or not.
+        If so, then the given function is executed.
         """
         
         do = False
