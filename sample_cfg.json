@@ -7,6 +7,7 @@
 	"css" : "",
 	"post_per_page" : 5,
 	"open_links_in_new_window" : 1,
+	"twitter" : "tumbkit",
 	
 	"variables" : {
 		"text:Disqus short name" : "tumbkit"

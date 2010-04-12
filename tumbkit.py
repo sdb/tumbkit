@@ -199,6 +199,7 @@ var_mapping = {
     ('', 'SearchQuery') :               lambda b, v, r: r.context['query'] if r.context.has_key('query') else None,
     ('', 'URLSafeSearchQuery') :        lambda b, v, r: var_url_safe(r.context['query'] if r.context.has_key('query') else None),
     ('', 'SearchResultCount') :         lambda b, v, r: r.context['result_count'],
+    ('', 'TwitterUsername') :           lambda b, v, r: r.conf['twitter'],
 }
 
 for dim in [16,24,30,40,48,64,96,128]:
@@ -238,6 +239,7 @@ block_mapping = {
     ('', 'TagPage') :               lambda b, p, r: r.context['type'] == 'tagged',
     ('', 'SearchPage') :            lambda b, p, r: r.context['type'] == 'search',
     ('', 'NoSearchResults') :       lambda b, p, r: r.context['result_count'] == 0,
+    ('', 'Twitter') :               lambda b, p, r: r.conf.has_key('twitter'),
 }
 
 
