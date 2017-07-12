@@ -1,6 +1,8 @@
 Tumbkit
 =======
 
+The development of this toolkit has been discontinued.
+
 Tumbkit is a utility script to facilitate [Tumblr][t] theme development. 
 
 Note that this is still a work in progress and at the moment not all
